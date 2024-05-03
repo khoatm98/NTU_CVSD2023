@@ -102,7 +102,7 @@ module alu #(
     input signed [DATA_W-1:0] i_data_b;
     input signed [DATA_W-1:0] old_val;
     reg   signed [DATA_W*2-1:0] direct_mult;
-    logic sticky;
+    reg sticky;
     //reg signed   [DATA_W*2-1:0]    32bold_val; 
     begin
         direct_mult = i_data_a * i_data_b;
