@@ -2,7 +2,6 @@
 `define CYCLE       10.0
 `define RST_DELAY   2
 `define MAX_CYCLE   100000000
-`include  "../01_RTL/alu.v"
 `ifdef I0
     `define Inst_I  "../00_TESTBED/pattern/INST0_I.dat"
     `define Inst_O  "../00_TESTBED/pattern/INST0_O.dat"

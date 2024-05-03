@@ -221,7 +221,7 @@ module alu #(
     begin
         for( i = 0; i < DATA_W; i=i+1) begin
             if (i == 0) cnt = 0;
-            if (i_data_a[0]) cnt++;
+            if (i_data_a[0]) cnt = cnt + 1;
             i_data_a = i_data_a >> 1;
         end
         cpop = cnt;
@@ -244,9 +244,9 @@ module alu #(
     input signed [DATA_W-1:0] i_data_b;
 
     reg xor1, xor2, xor3;
-    
+    integer i;
     begin
-        for (integer i = 0; i < i_data_b; i = i + 1) begin
+        for ( i = 0; i < i_data_b; i = i + 1) begin
             xor1 = i_data_a[15] ^ i_data_a[13];
             xor2 =  i_data_a[12] ^ xor1;
             xor3 =  i_data_a[10] ^ xor2;
