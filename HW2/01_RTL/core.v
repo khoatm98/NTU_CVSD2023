@@ -17,7 +17,7 @@ module core #( // DO NOT MODIFY!!!
     // Registers, wires declaration
     reg [ADDR_WIDTH-1:0] current_pc, next_pc;
     reg                  pc_overflow;
-    logic                z_flag;
+    wire                z_flag;
     
     
     
@@ -33,7 +33,7 @@ module core #( // DO NOT MODIFY!!!
     end
 
     // SEQUENTIAL LOGIC FOR PC
-    always @ () begin
+    always @ (negedge i_clk) begin
         if(!i_rst_n) begin
             current_pc = 0;
             next_pc = 0;
