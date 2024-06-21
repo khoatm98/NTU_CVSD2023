@@ -34,7 +34,7 @@ module alu #(
 
     // Common registers
     reg [1:0] curr_state, next_state;
-    reg [DATA_W-1:0] ans;
+    reg [DATA_W-1:0] ans, old;
     reg locked;
 
     //Combinational logic
@@ -43,7 +43,7 @@ module alu #(
             FXADD: ans = fx_add(i_data_a, i_data_b);
             FXSUB: ans = fx_add(i_data_a, ~i_data_b + 1);
             FXMUL: ans = fx_mul(i_data_a, i_data_b);
-            FXMAC: ans = fx_mac(i_data_a, i_data_b, ans);
+            FXMAC: ans = fx_mac(i_data_a, i_data_b, old);
             GELU:  ans = gelu(i_data_a);
             CLZ:   ans = clz(i_data_a);
             LRCW:  ans = lrcw(i_data_a, i_data_b);
@@ -52,6 +52,7 @@ module alu #(
             FPSUB: ans = fp_add(i_data_a, {~i_data_b[DATA_W-1] , i_data_b[DATA_W-2:0]});
             default: ans = 16'bxxxxxxxxxxxxxxxx;
         endcase
+		
     end
 
     function[DATA_W-1:0] fx_add;
@@ -77,13 +78,10 @@ module alu #(
     input signed [DATA_W-1:0] i_data_a;
     input signed [DATA_W-1:0] i_data_b;
     reg   signed [DATA_W*2-1:0] direct_mult;
-    reg   [5:0] sticky;
+    reg   sticky;
     begin
         direct_mult = i_data_a*i_data_b;
         sticky = |direct_mult[FRAC_W-2 : 0];
-        if (i_data_a == 16'b0010101100000000) begin
-        $display("direct_mult: %b", direct_mult);
-        end
         if (direct_mult < $signed(32'b11111110000000000000000000000000) ) begin
             fx_mul = 16'b1000000000000000;
         end else if (direct_mult > $signed(32'b00000001111111111111111111111111) ) begin
@@ -91,6 +89,7 @@ module alu #(
         end
         else begin
             //direct_mult =  direct_mult +  ((sticky  || (direct_mult[FRAC_W -: 2] == 2'b11)) ?   (1 << (FRAC_W-1)) : 0);
+			//$display("direct_mult: %b",direct_mult);
             fx_mul = direct_mult[DATA_W*2-INT_W - 1 -:DATA_W] + ((sticky  || (direct_mult[FRAC_W -: 2] == 2'b11)) ?   (direct_mult[FRAC_W - 1]) : 0);
         end
         
@@ -103,10 +102,10 @@ module alu #(
     input signed [DATA_W-1:0] old_val;
     reg   signed [DATA_W*2-1:0] direct_mult;
     reg sticky;
-    //reg signed   [DATA_W*2-1:0]    32bold_val; 
+
     begin
         direct_mult = i_data_a * i_data_b;
-        direct_mult = direct_mult + {old_val[DATA_W-1] ? 6'b111111:6'b000000, old_val, 10'b0000000000};
+        direct_mult = direct_mult + {{6{old_val[DATA_W-1]}}, old_val, 10'b0000000000};
         sticky = |direct_mult[FRAC_W-2 : 0];
         if (direct_mult < $signed(32'b11111110000000000000000000000000) ) begin
             fx_mac = 16'b1000000000000000;
@@ -415,10 +414,13 @@ module alu #(
         if(~i_rst_n) begin
             curr_state = B0;
             next_state = B1;
+			old <=  0 ;
         end else begin
             curr_state = next_state;
             next_state = next_state == B3? next_state -1 : next_state + 1;
+			old <= o_valid? ans : old;
         end
+		
     end
 
     assign o_busy  = (curr_state == B0) || (curr_state == B2);
