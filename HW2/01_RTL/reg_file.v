@@ -8,22 +8,25 @@ module reg_file #(
     input                     w_enable, //w_enable high means can write
     input  [  ADDR_WIDTH-1:0] w_addr,
     input  [  DATA_WIDTH-1:0] w_data,
-    input  [  ADDR_WIDTH-1:0] r_addr,
-    output [  DATA_WIDTH-1:0] r_data
+    input  [  ADDR_WIDTH-1:0] r_addrA,
+	input  [  ADDR_WIDTH-1:0] r_addrB,
+    output [  DATA_WIDTH-1:0] r_dataA,
+	output [  DATA_WIDTH-1:0] r_dataB
 );
 
-reg  [DATA_WIDTH-1:0] data_store[0:REG_AMOUNT-1];
+reg signed [DATA_WIDTH-1:0] data_store[0:REG_AMOUNT-1];
 
 wire [DATA_WIDTH-1:0] r_data_w;
 reg  [DATA_WIDTH-1:0] r_data_r;
 
 
-assign r_data =  data_store[r_addr];
+assign r_dataA =  data_store[r_addrA];
+assign r_dataB =  data_store[r_addrB];
 integer i;
 always @(posedge i_clk or negedge i_rst_n) begin
     if (!i_rst_n) begin
         for(i=0; i<REG_AMOUNT; i=i+1)
-            data_store[reg_var] <= {DATA_WIDTH{1'b0}};
+            data_store[i] <= {DATA_WIDTH{1'b0}};
     end
     else begin
         if(w_enable) begin
