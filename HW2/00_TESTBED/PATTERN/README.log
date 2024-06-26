@@ -1,0 +1,30 @@
+p0 & p1
+TA provided pattern
+p2
+pc underflow
+p3
+pc overflow
+p4
+lw underflow
+p5
+lw overflow
+p6
+lw normal
+p7
+sw underflow
+p8
+sw overflow
+p9
+sw normal
+p10
+addi underflow
+p11
+addi overflow
+p12
+add overflow
+p13
+add underflow
+p14 ~ p16
+floating point (Y.Y. Lin provide)
+p17 ~ p19
+overflow (Y.Y. Lin provide)
