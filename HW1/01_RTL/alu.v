@@ -90,7 +90,7 @@ module alu #(
         else begin
             //direct_mult =  direct_mult +  ((sticky  || (direct_mult[FRAC_W -: 2] == 2'b11)) ?   (1 << (FRAC_W-1)) : 0);
 			//$display("direct_mult: %b",direct_mult);
-            fx_mul = direct_mult[DATA_W*2-INT_W - 1 -:DATA_W] + ((sticky  || (direct_mult[FRAC_W -: 2] == 2'b11)) ?   (direct_mult[FRAC_W - 1]) : 0);
+            fx_mul = direct_mult[DATA_W*2-INT_W - 1 -:DATA_W] + (direct_mult[FRAC_W - 1]);
         end
         
     end
@@ -113,7 +113,7 @@ module alu #(
             fx_mac = 16'b0111111111111111;
         end
         else begin 
-            fx_mac = direct_mult[DATA_W*2-INT_W - 1 -:DATA_W] + ((sticky  || (direct_mult[FRAC_W -: 2] == 2'b11)) ?   (direct_mult[FRAC_W - 1]) : 0);
+            fx_mac = direct_mult[DATA_W*2-INT_W - 1 -:DATA_W] + (direct_mult[FRAC_W - 1]);
         end
     end
     endfunction

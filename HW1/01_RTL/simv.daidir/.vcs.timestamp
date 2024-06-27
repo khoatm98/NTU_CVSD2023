@@ -1,6 +1,6 @@
 0 
 30
-+define+I2
++define+I0123h
 +itf+/usr/cad/synopsys/vcs/cur/linux64/lib/vcsdp_lite.tab
 +v2k
 +vcsd1
@@ -34,7 +34,7 @@ rtl.f
 XILINX_VIVADO=/tools/Xilinx/Vivado/2023.2
 XILINX_VITIS=/tools/Xilinx/Vitis/2023.2
 XILINX_HLS=/tools/Xilinx/Vitis_HLS/2023.2
-XDG_SESSION_ID=2275
+XDG_SESSION_ID=109
 XDG_RUNTIME_DIR=/run/user/2012
 XDG_DATA_DIRS=/home/MingKe/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
 VMR_MODE_FLAG=64
@@ -52,11 +52,11 @@ UNAME=/bin/uname
 TOOL_HOME=/usr/cad/synopsys/vcs/cur/linux64
 SYN_MAN_DIR=/usr/cad/synopsys/synthesis/cur/doc/syn/man
 SYNTHESIS=/usr/cad/synopsys/synthesis/cur
-SSH_TTY=/dev/pts/8
-SSH_CONNECTION=140.112.175.69 65505 140.112.20.89 30101
-SSH_CLIENT=140.112.175.69 65505 30101
+SSH_TTY=/dev/pts/1
+SSH_CONNECTION=140.112.175.69 62063 140.112.20.89 30101
+SSH_CLIENT=140.112.175.69 62063 30101
 SNPS_VCS_CLANG_PATH=/usr/cad/synopsys/vcs/cur/linux64/clang
-SHLIB_PATH=/usr/cad/synopsys/verdi/cur/etc/lib/libstdc++/LINUX64/:/usr/cad/synopsys/verdi/cur/etc/lib/libstdc++/LINUX64/
+SHLIB_PATH=/usr/cad/synopsys/verdi/cur/etc/lib/libstdc++/LINUX64/
 SG_HTML_BROWSER=/usr/bin/mozilla
 SELINUX_USE_CURRENT_RANGE=
 SELINUX_ROLE_REQUESTED=
@@ -82,8 +82,8 @@ GROUP=DCSLab
 0
 0
 4
-1718959773 ./alu.v
-1714725100 ../00_TESTBED/testbench.v
+1719478005 ./alu.v
+1719478228 ../00_TESTBED/testbench.v
 1714725098 rtl.f
 1630379311 /usr/cad/synopsys/vcs/cur/linux64/lib/vcsdp_lite.tab
 4
@@ -91,5 +91,5 @@ GROUP=DCSLab
 1630379964 /usr/cad/synopsys/vcs/cur/linux64/lib/liberrorinf.so
 1630379861 /usr/cad/synopsys/vcs/cur/linux64/lib/libsnpsmalloc.so
 1630379961 /usr/cad/synopsys/vcs/cur/linux64/lib/libvfs.so
-1718959789 simv.daidir
+1719478233 simv.daidir
 -1 partitionlib

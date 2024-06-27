@@ -93,8 +93,8 @@
     `define PAT_NUM 30000
     `define FLAG 1
 `elsif I0123h
-    `define Inst_I  "../00_TESTBED/pattern/INST0123_mix_20000_I_I.dat"
-    `define Inst_O  "../00_TESTBED/pattern/INST0123_mix_20000_I_O.dat"
+    `define Inst_I  "../00_TESTBED/pattern/INST0123_mix_20000_I.dat"
+    `define Inst_O  "../00_TESTBED/pattern/INST0123_mix_20000_O.dat"
     `define PAT_NUM 20000
     `define FLAG 1
 
