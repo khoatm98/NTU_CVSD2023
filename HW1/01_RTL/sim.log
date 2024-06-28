@@ -1,6 +1,6 @@
 *** Using c compiler gcc instead of cc ...
                          Chronologic VCS (TM)
-         Version S-2021.09_Full64 -- Thu Jun 27 16:50:36 2024
+         Version S-2021.09_Full64 -- Fri Jun 28 12:20:28 2024
 
                     Copyright (c) 1991 - 2021 Synopsys, Inc.
    This software and the associated documentation are proprietary to Synopsys,
@@ -18,13 +18,24 @@
             Inclusivity and Diversity" (Refer to article 000036315 at
                         https://solvnetplus.synopsys.com)
 
-The design hasn't changed and need not be recompiled. 
-If you really want to, delete file simv.daidir/.vcs.timestamp and
-run VCS again.
+Parsing design file '../00_TESTBED/testbench.v'
+Parsing design file './alu.v'
+Top Level Modules:
+       testbed
+TimeScale is 1 ns / 1 ps
+Starting vcs inline pass...
 
+1 module and 0 UDP read.
+recompiling module testbed
+rm -f _cuarc*.so _csrc*.so pre_vcsobj_*.so share_vcsobj_*.so
+ld -shared  -Bsymbolic   -o .//../simv.daidir//_cuarc0.so objs/amcQw_d.o 
+rm -f _cuarc0.so
+if [ -x ../simv ]; then chmod a-x ../simv; fi
+g++  -o ../simv      -rdynamic  -Wl,-rpath='$ORIGIN'/simv.daidir -Wl,-rpath=./simv.daidir -Wl,-rpath=/usr/cad/synopsys/vcs/cur/linux64/lib -L/usr/cad/synopsys/vcs/cur/linux64/lib  -Wl,-rpath-link=./ -Wl,--no-as-needed  /usr/lib64/libnuma.so.1     _79980_archive_1.so _cuarc0.so  SIM_l.o      rmapats_mop.o rmapats.o rmar.o rmar_nd.o  rmar_llvm_0_1.o rmar_llvm_0_0.o           -lvirsim -lerrorinf -lsnpsmalloc -lvfs    -lvcsnew -lsimprofile -luclinative /usr/cad/synopsys/vcs/cur/linux64/lib/vcs_tls.o   -Wl,-whole-archive  -lvcsucli    -Wl,-no-whole-archive          /usr/cad/synopsys/vcs/cur/linux64/lib/vcs_save_restore_new.o -ldl  -lc -lm -lpthread -ldl 
+../simv up to date
 Chronologic VCS simulator copyright 1991-2021
 Contains Synopsys proprietary information.
-Compiler version S-2021.09_Full64; Runtime version S-2021.09_Full64;  Jun 27 16:50 2024
+Compiler version S-2021.09_Full64; Runtime version S-2021.09_Full64;  Jun 28 12:20 2024
 ----------------------------------------------
 -                 ALL PASS!                  -
 ----------------------------------------------
@@ -32,6 +43,6 @@ $finish called from file "../00_TESTBED/testbench.v", line 236.
 $finish at simulation time            400050000
            V C S   S i m u l a t i o n   R e p o r t 
 Time: 400050000 ps
-CPU Time:      0.330 seconds;       Data structure size:   0.0Mb
-Thu Jun 27 16:50:38 2024
-CPU time: .353 seconds in simulation
+CPU Time:      0.320 seconds;       Data structure size:   0.0Mb
+Fri Jun 28 12:20:31 2024
+CPU time: .292 seconds to compile + .258 seconds to elab + .143 seconds to link + .347 seconds in simulation

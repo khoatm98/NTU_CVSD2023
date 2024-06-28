@@ -19,7 +19,7 @@ module core #( // DO NOT MODIFY!!!
 /*************************************************/
 	// CPU
     reg signed [ADDR_WIDTH-1:0] current_pc, next_pc;
-    reg                  pc_overflow, addr_ovf, overflow_true;
+    reg                  pc_overflow, overflow_true;
     reg [ADDR_WIDTH-1:0] count;
 	// ALU control block
 	wire                 Reg2Loc;
@@ -126,6 +126,7 @@ module core #( // DO NOT MODIFY!!!
 						   
     // FSM
     always @ (*) begin
+		next_status = next_status;
         case(state)
 			IDLE 				   : next_state = (r_type||i_type)? FETCH: IDLE;
 			FETCH                  : next_state = DECODE;
@@ -174,11 +175,15 @@ module core #( // DO NOT MODIFY!!!
         endcase
 	end
 
-
+	always @ (*) begin
+		
+	end 
+	
+	
 	// Combinational circuit
 	
 	always @(*) begin
-		if (ALUovf || pc_overflow || addr_ovf) begin
+		if (ALUovf || pc_overflow) begin
 			overflow_true = 1;
 		end else begin
 			overflow_true = 0;
@@ -190,8 +195,8 @@ module core #( // DO NOT MODIFY!!!
 
 		//$display("valid %b " , state);
         if(!i_rst_n) begin
-            state        = FETCH;
-            next_state   = DECODE;
+            state        <= FETCH;
+            next_state   <= DECODE;
 			count = 0;
 			pc_overflow = 0;
         end

@@ -351,25 +351,34 @@ module alu #(
     end
     endfunction
 	
-
-    always @ (posedge i_clk) begin
+	always @ (*) begin
+		case(curr_state)
+			B0: next_state = B1;
+			B1: next_state = B2;
+			B2: next_state = B3;
+			B3: next_state = B2;  //B2
+			default : next_state = B2;
+		endcase
+        
+		
+    end
+	
+	always @ (posedge i_clk or negedge i_rst_n) begin
         if(~i_rst_n) begin
-            curr_state = B0;
-            next_state = B1;
+            curr_state <= B0;
 			old <=  0 ;
-			w_ovf <= 0;
+			//w_ovf <= 0;
         end else begin
-            curr_state = next_state;
-            next_state = next_state == B3? next_state -1 : next_state + 1;
+            curr_state <= next_state;
 			old <= o_valid? ans : old;
 			if (i_inst == 10 ) begin
-				w_cond = (ans == 0);
+				w_cond <= (ans == 0);
 			end else if (i_inst == 11 ) begin
-				w_cond = (ans != 0);
+				w_cond <= (ans != 0);
 			end
 			else
-				w_cond = 0;
-		end
+				w_cond <= 0;
+        end
 		
     end
 	assign ovf = alu_en ? w_ovf : ovf;
