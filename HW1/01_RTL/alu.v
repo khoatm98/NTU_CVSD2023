@@ -159,9 +159,9 @@ module alu #(
 
 
     function automatic [DATA_W-1:0] gelu_first;
+
     input signed [DATA_W-1:0] x;
-	
-	reg   signed [DATA_W*4-1:0] direct_mult0;
+    reg   signed [DATA_W*4-1:0] direct_mult0;
     reg   signed [DATA_W*5-1:0] direct_mult1;
     reg   signed [DATA_W*2-1:0] x_square;
     reg   signed [DATA_W*3-1:0] minor;
@@ -180,7 +180,7 @@ module alu #(
             gelu_first = 16'b0111111111111111;
         end
         else begin 
-            direct_mult1 = direct_mult1 +  ( (|direct_mult1[FRAC_W*4-2 : 0]  || (direct_mult1[FRAC_W*4 -: 2] == 2'b11))  ?   (1 << (FRAC_W*4-1)) : 0);
+            direct_mult1 = direct_mult1 +  ( (|direct_mult1[FRAC_W*4-2 : 0]  || (direct_mult1[FRAC_W*4 -: 1] == 2'b11))  ?   (1 << (FRAC_W*4-1)) : 0);
             gelu_first =  direct_mult1[DATA_W*5 - INT_W*4 -1 -: DATA_W];
         end
         
