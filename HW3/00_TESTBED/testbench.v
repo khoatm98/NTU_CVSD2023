@@ -9,6 +9,7 @@
     `define INFILE "../00_TESTBED/PATTERN/indata1.dat"
     `define OPFILE "../00_TESTBED/PATTERN/opmode1.dat"
     `define GOLDEN "../00_TESTBED/PATTERN/golden1.dat"
+	`define OP_NUM  41
 `elsif tb2
     `define INFILE "../00_TESTBED/PATTERN/indata2.dat"
     `define OPFILE "../00_TESTBED/PATTERN/opmode2.dat"
@@ -99,7 +100,7 @@ initial begin
 end
 
 integer error;
-integer i;
+integer i, j;
 initial begin
 	op_valid         = 0;
 	op_mode 		 = 0;
@@ -107,9 +108,32 @@ initial begin
 	in_data   		 = 0;
 	error = 0;
 	i = 0;
+	j = 0;
+	while (i < `OP_NUM) begin
+		@(negedge clk);
+		if(op_ready) begin
+			op_valid = 1;
+			op_mode = opmode_mem[i][3:0];
+			@(negedge clk);
+			op_valid = 0;
+			if (op_mode == 0) begin
+				j = 0;
+				// Load imput feature map
+                while (j < 2048) begin
+                    in_valid = 1;
+                    in_data = indata_mem[j][7:0];
+                    if (in_ready) begin
+                        j = j + 1;
+                    end
+                    @(negedge clk);
+                end
+                in_valid = 0;
+			end
+		end
+	end
 	
+end
 	
-
 // ==============================================
 // TODO: Check pattern after process finish
 // ==============================================
