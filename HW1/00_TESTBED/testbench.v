@@ -195,8 +195,8 @@ module testbed;
             if (`FLAG) begin // check FP
                 if (test_outD !== o_data) begin
                     $display (
-                        "Test[%d]: Error! Inst=%b, A=%b, B=%b, Golden(FP)=%b, Yours(FP)=%b, diff %b",
-                        j, test_inst, test_inA, test_inB, test_outD, o_data, o_data<test_outD? test_outD-o_data: o_data-test_outD
+                        "Test[%d]: Error! Inst=%b, A=%b, B=%b, Golden(FP)=%b, Yours(FP)=%b", 
+                        j, test_inst, test_inA, test_inB, test_outD, o_data
                     );      
                     error = error+1;        
                 end else if (test_outD === o_data) begin

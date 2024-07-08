@@ -96,6 +96,7 @@ module alu #(
     input signed [DATA_W-1:0] i_data_b;
     reg   signed [DATA_W*2-1:0] direct_mult;
 	reg   signed [DATA_W-1:0]  tmp;
+	reg sticky, round, guard;
     begin
         direct_mult = i_data_a*i_data_b;
         if (direct_mult < $signed(32'b11111110000000000000000000000000) ) begin
@@ -104,9 +105,13 @@ module alu #(
             fx_mul = 16'b0111111111111111;
         end
         else begin
+			sticky = |direct_mult[FRAC_W - 2 : 0];
+			round  = direct_mult[FRAC_W - 1];
+			guard  = direct_mult[FRAC_W];
             tmp = direct_mult[DATA_W*2-INT_W - 1 -:DATA_W] ;
-			tmp = tmp + (direct_mult[FRAC_W - 1]);
+			tmp = tmp + ( round);
 			fx_mul = tmp;
+				
         end
         
     end
@@ -118,7 +123,7 @@ module alu #(
     input signed [DATA_W-1:0] old_val;
     reg   signed [DATA_W*2-1:0] direct_mult;
 	reg signed [DATA_W-1:0] tmp;
-
+	reg sticky, round, guard;
     begin
         direct_mult = i_data_a * i_data_b;
         direct_mult = direct_mult + {{6{old_val[DATA_W-1]}}, old_val, 10'b0000000000};
@@ -128,8 +133,11 @@ module alu #(
             fx_mac = 16'b0111111111111111;
         end
         else begin 
+			sticky = |direct_mult[FRAC_W - 2 : 0];
+			round  = direct_mult[FRAC_W - 1];
+			guard  = direct_mult[FRAC_W];
 			tmp = direct_mult[DATA_W*2-INT_W - 1 -:DATA_W];
-			tmp = tmp +  (direct_mult[FRAC_W - 1]);
+			tmp = tmp + (round);
             fx_mac = tmp;
         end
     end
@@ -139,6 +147,7 @@ module alu #(
     input signed [DATA_W-1:0] x;
     reg   signed [DATA_W*2-1:0] direct_mult, b_old_val;
     begin
+		direct_mult = x*$signed(16'b0000001000000000);
         if (x < $signed(16'b1111101000000000)) begin   // x < -1.5
             round_tanh_x = $signed(16'b1111110000000000) ; // -1
         end
@@ -150,6 +159,8 @@ module alu #(
         end
         else if (x < $signed(16'b0000011000000000))begin  // x < 1.5
             round_tanh_x = fx_add(x[0] ? x + 1 >> 1 : x >> 1, $signed(16'b0000000100000000));
+			if (x==16'b0000010100001101 )
+				$display("direct_mults %b  ", direct_mult);
         end
         else begin
             round_tanh_x = 16'b0000010000000000;
@@ -165,22 +176,28 @@ module alu #(
     reg   signed [DATA_W*5-1:0] direct_mult1;
     reg   signed [DATA_W*2-1:0] x_square;
     reg   signed [DATA_W*3-1:0] minor;
-    reg   signed [DATA_W-1:0] tmp_x;
+    reg   signed [DATA_W-1:0] tmp;
+	reg sticky, round, guard;
     begin
         x_square = x*x;
         minor    = x_square*$signed(16'b0000000000101110);
         minor    = minor + (1<<(FRAC_W*3));
         direct_mult0 = minor*x;
         direct_mult1 = direct_mult0*$signed(16'b0000001100110001);
-
+		if (x==16'b0010101100000000)
+			$display("direct_mult %b  ", direct_mult1);
         if (direct_mult1 < $signed(80'b111111_111111_111111_111111_100000_0000000000_0000000000_0000000000_0000000000_0000000000) ) begin
             gelu_first = 16'b1000000000000000;
         end else if (direct_mult1 > $signed(80'b000000_000000_000000_000000_011111_1111111111_1111111111_1111111111_1111111111_1111111111) ) begin
             gelu_first = 16'b0111111111111111;
         end
         else begin 
-            direct_mult1 = direct_mult1 +  direct_mult1[FRAC_W*4 - 1];
-            gelu_first =  direct_mult1[DATA_W*5 - INT_W*4 -1 -: DATA_W];
+			sticky = |direct_mult1[FRAC_W*4 - 2 : 0];
+			round  = direct_mult1[FRAC_W*4 - 1];
+			guard  = direct_mult1[FRAC_W*4];
+			tmp = direct_mult1[DATA_W*5 - INT_W*4 -1 -: DATA_W];
+			tmp = tmp + ( round);
+            gelu_first =  tmp;
         end
         
     end
@@ -200,7 +217,8 @@ module alu #(
         second = round_tanh_x(first);
         third0  =  fx_add($signed(16'b0000_0100_0000_0000), second);
         third  = third0*i_data_a;
-		$display("direct_mult %b %b %b", first, second ,third);
+		if (i_data_a==16'b0000010111001001)
+			$display("direct_mult %b %b %b  ", first, second, third);
         third  = third[0] ? third + 1 >> 1: third  >> 1;
         
         tmp = third[25:10];
