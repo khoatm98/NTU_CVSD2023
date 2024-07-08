@@ -147,7 +147,6 @@ module alu #(
     input signed [DATA_W-1:0] x;
     reg   signed [DATA_W*2-1:0] direct_mult, b_old_val;
     begin
-		direct_mult = x*$signed(16'b0000001000000000);
         if (x < $signed(16'b1111101000000000)) begin   // x < -1.5
             round_tanh_x = $signed(16'b1111110000000000) ; // -1
         end
@@ -159,8 +158,6 @@ module alu #(
         end
         else if (x < $signed(16'b0000011000000000))begin  // x < 1.5
             round_tanh_x = fx_add(x[0] ? x + 1 >> 1 : x >> 1, $signed(16'b0000000100000000));
-			if (x==16'b0000010100001101 )
-				$display("direct_mults %b  ", direct_mult);
         end
         else begin
             round_tanh_x = 16'b0000010000000000;
@@ -196,14 +193,12 @@ module alu #(
 			round  = direct_mult1[FRAC_W*4 - 1];
 			guard  = direct_mult1[FRAC_W*4];
 			tmp = direct_mult1[DATA_W*5 - INT_W*4 -1 -: DATA_W];
-			tmp = tmp + ( round);
+			tmp = tmp + (round);
             gelu_first =  tmp;
         end
-        
-    end
-    endfunction
-
-
+	end
+	endfunction
+	
     function automatic [DATA_W-1:0] gelu;
     input signed [DATA_W-1:0] i_data_a;
 
@@ -217,9 +212,7 @@ module alu #(
         second = round_tanh_x(first);
         third0  =  fx_add($signed(16'b0000_0100_0000_0000), second);
         third  = third0*i_data_a;
-		if (i_data_a==16'b0000010111001001)
-			$display("direct_mult %b %b %b  ", first, second, third);
-        third  = third[0] ? third + 1 >> 1: third  >> 1;
+        third  = third  >> 1;
         
         tmp = third[25:10];
 		tmp = tmp + third[FRAC_W-1];
