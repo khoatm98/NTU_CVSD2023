@@ -289,7 +289,9 @@ module sram_4096x8 (
       casez({valid_address(a)})
 	1'b0: 
 		x_mem;
-	1'b1: mem[a]=d;
+	1'b1: begin 
+		mem[a]=d;
+	end
       endcase
    end
    endtask
