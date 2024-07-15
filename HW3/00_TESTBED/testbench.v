@@ -1,11 +1,14 @@
 `timescale 1ns/100ps
 `define CYCLE       5.0     // CLK period.
 `define HCYCLE      (`CYCLE/2)
-`define MAX_CYCLE   30000
+`define MAX_CYCLE   4000
 `define RST_DELAY   2
 
-
-`ifdef tb1
+`ifdef tb0
+    `define INFILE "../00_TESTBED/PATTERN/indata0.dat"
+    `define OPFILE "../00_TESTBED/PATTERN/opmode0.dat"
+    `define GOLDEN "../00_TESTBED/PATTERN/golden0.dat"
+`elsif tb1
     `define INFILE "../00_TESTBED/PATTERN/indata1.dat"
     `define OPFILE "../00_TESTBED/PATTERN/opmode1.dat"
     `define GOLDEN "../00_TESTBED/PATTERN/golden1.dat"
@@ -21,12 +24,13 @@
     `define INFILE "../00_TESTBED/PATTERN/indata4.dat"
     `define OPFILE "../00_TESTBED/PATTERN/opmode4.dat"
     `define GOLDEN "../00_TESTBED/PATTERN/golden4.dat"
-`elsif tb0
-    `define INFILE "../00_TESTBED/PATTERN/indata0.dat"
-    `define OPFILE "../00_TESTBED/PATTERN/opmode0.dat"
-    `define GOLDEN "../00_TESTBED/PATTERN/golden0.dat"
-`endif
 
+`elsif tbh
+    `define INFILE "../00_TESTBED/PATTERN/indatah.dat"
+    `define OPFILE "../00_TESTBED/PATTERN/opmodeh.dat"
+    `define GOLDEN "../00_TESTBED/PATTERN/goldenh.dat"
+	
+`endif
 `define SDFFILE "core_syn.sdf"  // Modify your sdf file name
 
 
@@ -87,8 +91,10 @@ initial $readmemb(`GOLDEN, golden_mem);
 
 // Clock generation
 initial clk = 1'b0;
-always begin #(`CYCLE /2) clk = ~clk; end
-
+always
+begin
+ forever #(`CYCLE /2) clk = ~clk;  
+end
 // Reset generation
 initial begin
     rst_n = 1; # (               0.25 * `CYCLE);
@@ -140,18 +146,20 @@ end
 initial begin
     k = 0;
     error = 0;
-	while (golden_mem[k+1] !== 14'dx) begin
+	while (golden_mem[k] !== 14'dx ) begin
 		@(negedge clk);
         if (out_valid==1) begin
             if (out_data !== golden_mem[k][13:0]) begin
-                $display ("Test[%4d]: Error! golden=(%b), yours=(%b)", k, golden_mem[k][13:0], out_data);
+                $display ("Test[%4d]: Error! golden=(%d), yours=(%d)", k, golden_mem[k][13:0], out_data);
                 //$finish;
                 error = error+1;
             end
-			//else
-				//$display ("Test[%4d]: Correct! golden=(%b), yours=(%b)", k, golden_mem[k][13:0], out_data);
+			else
+				$display ("Test[%4d]: Correct! golden=(%d), yours=(%d)", k, golden_mem[k][13:0], out_data);
             k = k + 1;
         end
+		//$display ("%d ", cycle  );
+		//$finish;
 	end
 	
 	if(error == 0) begin

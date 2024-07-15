@@ -180,6 +180,7 @@ module sram_4096x8 (
 	end
 	2'b00: begin
 	   write_mem(Ai,Di);
+	   $display("mem[%d] %d", Ai,Di);
 	   read_mem(0,0);
 	end
 	2'b?1: ;
