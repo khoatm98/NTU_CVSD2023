@@ -1,0 +1,4 @@
+Command Line: /usr/cad/synopsys/verdi/cur/platform/LINUXAMD64/bin/Novas -nWave
+uname(Linux dcs-expensive03 3.10.0-1160.el7.x86_64 #1 SMP Mon Oct 19 16:18:59 UTC 2020 x86_64)
+Failure on Verdi 3-tier licensing, Use nWave -licdebug for more information.
+au time 34.638586 1.653094 0.363136 delta 280522752 280522752 total 770650112 770650112

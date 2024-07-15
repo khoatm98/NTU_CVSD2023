@@ -1,0 +1,3 @@
+Command Line: /usr/cad/synopsys/verdi/cur/platform/LINUXAMD64/bin/vfast -silent -del . -o /home/MingKe/Study/NTU_CVSD2023/HW3/01_RTL/core.vcd.fsdb -ft verilog /home/MingKe/Study/NTU_CVSD2023/HW3/01_RTL/core.vcd
+uname(Linux dcs-expensive03 3.10.0-1160.el7.x86_64 #1 SMP Mon Oct 19 16:18:59 UTC 2020 x86_64)
+au time 0.059880 0.052727 0.006021 delta 25858048 25858048 total 115695616 115695616

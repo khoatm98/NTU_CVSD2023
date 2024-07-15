@@ -1,0 +1,6 @@
+{"vcs1":{"timestamp_begin":1720510478.724841105, "rt":1.09, "ut":0.19, "st":0.10}}
+{"vcselab":{"timestamp_begin":1720510479.863743128, "rt":1.12, "ut":0.19, "st":0.05}}
+{"link":{"timestamp_begin":1720510481.021724211, "rt":0.10, "ut":0.06, "st":0.05}}
+{"SNPS_VCS_INTERNAL_ROOT_START_TIME": 1720510478.373889878}
+{"VCS_COMP_START_TIME": 1720510478.373889878}
+{"VCS_COMP_END_TIME": 1720510482.305464147}
