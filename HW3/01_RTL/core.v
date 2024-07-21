@@ -44,7 +44,7 @@ parameter MAP_COL    		  = 8;
 // ---- Add your own wires and registers here if needed ---- //
 
 reg [3:0]   state, next_state;
-reg [ 7:0]  current_op_r, current_op_w;
+//reg [ 7:0]  current_op_r, current_op_w;
 // Flag for loading img
 wire 	   load_map_done;
 // Flag for display operation
@@ -72,26 +72,6 @@ reg        out_valid_w, out_valid_r;
 reg 	   o_in_ready_w, o_in_ready_r;
 reg [16:0] out_data_w_17;
 
-
-reg [13:0] conv_partial_sum0 ;
-reg [13:0] conv_partial_sum1 ;
-reg [13:0] conv_partial_sum2 ;
-reg [13:0] conv_partial_sum3 ;
-reg [13:0] conv_partial_sum4 ;
-reg [13:0] conv_partial_sum5 ;
-reg [13:0] conv_partial_sum6 ;
-reg [13:0] conv_partial_sum7 ;
-reg [13:0] conv_partial_sum8 ;
-reg [13:0] conv_partial_sum9 ;
-reg [13:0] conv_partial_sum10 ;
-reg [13:0] conv_partial_sum11;
-reg [13:0] conv_partial_sum12;
-reg [13:0] conv_partial_sum13;
-reg [13:0] conv_partial_sum14;
-reg [13:0] conv_partial_sum15;
-
-
-reg [6:0] med_filter_index_r, med_filter_index_w, sober_nms_index_r, sober_nms_index_w;
 reg [2:0] out_counter_w, out_counter_r;
 reg [7:0] i_r[15:0];
 wire [7:0]o_med_data[3:0];
@@ -192,61 +172,40 @@ always @(*) begin
 			if      (i_op_mode == `OP_MAP_LOADING) begin // MAP LOADING
 				o_in_ready_w = 1;
 				target_sticks = 2048;
-				current_op_w = `OP_MAP_LOADING;
 				sram_wen_w  = 0;
 				sram_cen_w  = 0;
 			end
 			else if (i_op_mode == `OP_R_SHIFT       )begin //SHIFT
-				current_op_w = `OP_R_SHIFT;
 			end                                      
 			else if (i_op_mode == `OP_L_SHIFT       )begin // SHIFT
-				current_op_w = `OP_L_SHIFT;
 			end                                      
 			else if (i_op_mode == `OP_U_SHIFT       )begin // SHIFT
-				current_op_w = `OP_U_SHIFT;
 			end                                    
 			else if (i_op_mode == `OP_D_SHIFT       )begin // SHIFT
-			    current_op_w = `OP_D_SHIFT;
 			end                                    
 			else if (i_op_mode == `OP_SCALE_DOWN  )begin // SCALE
-				current_op_w = `OP_SCALE_DOWN;
 			end
 			else if (i_op_mode == `OP_SCALE_UP)begin // SCALE
-				current_op_w = `OP_SCALE_UP;
 			end
 			else if (i_op_mode == `OP_DISPLAY       )begin // DISPLAY
 				sram_addr_delay_w = origin_index_x_r + origin_index_y_r*MAP_COL;
 				target_sticks = 4*depth_r;
 				sram_wen_w  = 1;
 				sram_cen_w  = 0;
-				current_op_w = `OP_DISPLAY;
 			end
 			else if (i_op_mode == `OP_CONV         ) begin // CONV
 				index_delay_w = 0;
 				sram_cen_w  = 0;
 				sram_wen_w  = 1;
-				current_op_w = `OP_CONV;
 				for(integer i=0; i<16; i=i+1) begin
 					conv_partial_sum[i] = 0;
 				end
 				
 			end
-			else if (i_op_mode == `OP_MED_FILTER   )begin // MED filter
-				current_op_w = `OP_MED_FILTER;
-				med_filter_index_w = 0;
+			else if (i_op_mode == `OP_MED_FILTER  || i_op_mode ==`OP_SOBEL_NMS  )begin // MED filter
 				sram_cen_w  = 0;
 				sram_wen_w  = 1;
 				counter_w = 0;
-				for(integer i=0; i<16; i=i+1) begin
-					i_r[i] = 0;
-				end
-			end
-			else if (i_op_mode ==`OP_SOBEL_NMS    )begin
-				current_op_w = `OP_SOBEL_NMS;
-				med_filter_index_w = 0;
-				sram_cen_w  = 0;
-				sram_wen_w  = 1;
-				counter_w   = 0;
 				for(integer i=0; i<16; i=i+1) begin
 					i_r[i] = 0;
 				end
@@ -555,13 +514,13 @@ always @( posedge i_clk or negedge i_rst_n) begin
 end
 
 // Store current instruction
-always @( posedge i_clk or negedge i_rst_n) begin
+/* always @( posedge i_clk or negedge i_rst_n) begin
 	if(~i_rst_n) begin
 		current_op_r <= 0;
 		current_op_w <= 0;
 	end else
 		current_op_r <= current_op_w;
-end
+end */
 
 // Store current instruction
 always @( posedge i_clk or negedge i_rst_n) begin
@@ -678,22 +637,6 @@ always @( posedge i_clk or negedge i_rst_n) begin
 	end else begin
 		if(sram_cen_r[2] == 0 && sram_wen_r[2] == 1 && state == CONV_CALC) begin //SRAM READ 
 			conv_partial_sum[index_delay_r[2]/depth_r] <= conv_partial_sum[index_delay_r[2]/depth_r] + sram_data_out;
-			conv_partial_sum0  <= conv_partial_sum[0 ];
-			conv_partial_sum1  <= conv_partial_sum[1 ];
-			conv_partial_sum2  <= conv_partial_sum[2 ];
-			conv_partial_sum3  <= conv_partial_sum[3 ];
-			conv_partial_sum4  <= conv_partial_sum[4 ];
-			conv_partial_sum5  <= conv_partial_sum[5 ];
-			conv_partial_sum6  <= conv_partial_sum[6 ];
-			conv_partial_sum7  <= conv_partial_sum[7 ];
-			conv_partial_sum8  <= conv_partial_sum[8 ];
-			conv_partial_sum9  <= conv_partial_sum[9 ];
-			conv_partial_sum10 <= conv_partial_sum[10];
-			conv_partial_sum11 <= conv_partial_sum[11];
-			conv_partial_sum12 <= conv_partial_sum[12];
-			conv_partial_sum13 <= conv_partial_sum[13];
-			conv_partial_sum14 <= conv_partial_sum[14];
-			conv_partial_sum15 <= conv_partial_sum[15];
 		end
 		else
 			conv_partial_sum[index_delay_r[2]/depth_r] <= conv_partial_sum[index_delay_r[2]/depth_r];

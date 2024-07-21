@@ -95,7 +95,7 @@ CDSHOME=/usr/cad/cadence/IC/IC_06.18.210
 0
 0
 6
-1721392535 ./core.v
+1721540616 ./core.v
 1721371921 ../sram_4096x8/sram_4096x8.v
 1721360263 ./define.v
 1721374890 ../00_TESTBED/testbench.v
@@ -106,5 +106,5 @@ CDSHOME=/usr/cad/cadence/IC/IC_06.18.210
 1630379964 /usr/cad/synopsys/vcs/cur/linux64/lib/liberrorinf.so
 1630379861 /usr/cad/synopsys/vcs/cur/linux64/lib/libsnpsmalloc.so
 1630379961 /usr/cad/synopsys/vcs/cur/linux64/lib/libvfs.so
-1721392548 simv.daidir
+1721540621 simv.daidir
 -1 partitionlib
