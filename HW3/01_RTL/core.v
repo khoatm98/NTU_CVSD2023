@@ -87,102 +87,18 @@ wire       sram_wen      [NUM_SRAM-1:0];
 wire [7:0] sram_data_out [NUM_SRAM-1:0];
 `ifdef SRAM_256
 wire  [7:0] sram_addr	 		 [NUM_SRAM-1:0]; 
-reg  [7:0] sram_addr_delay_r	 [NUM_SRAM-1:0][2:0], sram_addr_delay_w[NUM_SRAM-1:0], tsram_addr_delay_r; 
+reg  [7:0] sram_addr_delay_r	 [NUM_SRAM-1:0][2:0], sram_addr_delay_w[NUM_SRAM-1:0]; 
 `elsif SRAM_512
 wire  [8:0] sram_addr	 		 [NUM_SRAM-1:0]; 
-wire  [8:0] sram_addr_delay_r	 [2:0][NUM_SRAM-1:0], sram_addr_delay_w[NUM_SRAM-1:0], tsram_addr_delay_r; 
+wire  [8:0] sram_addr_delay_r	 [2:0][NUM_SRAM-1:0], sram_addr_delay_w[NUM_SRAM-1:0]; 
 `elsif SRAM_4096
 wire   [11:0] sram_addr   [NUM_SRAM-1:0]; 
-reg   [11:0] sram_addr_delay_r  [2:0], sram_addr_delay_w[NUM_SRAM-1:0], tsram_addr_delay_r; 
+reg   [11:0] sram_addr_delay_r  [2:0], sram_addr_delay_w[NUM_SRAM-1:0]; 
 `endif
 
 wire  [7:0] sram_data[NUM_SRAM-1:0], sram_data_w[NUM_SRAM-1:0]; 
 reg   [7:0] sram_data_r[NUM_SRAM-1:0];
-wire [7:0] dsram_data_out;
-wire dsram_cen_r,dsram_cen_r1,dsram_cen_r11,dsram_cen_r111;
 
-//debug
-wire [13:0] dconv_partial_sum0    ;
-wire [13:0] dconv_partial_sum1    ;
-wire [13:0] dconv_partial_sum2    ;
-wire [13:0] dconv_partial_sum3    ;
-wire [13:0] dconv_partial_sum4    ;
-wire [13:0] dconv_partial_sum5    ;
-wire [13:0] dconv_partial_sum6    ;
-wire [13:0] dconv_partial_sum7    ;
-wire [13:0] dconv_partial_sum8    ;
-wire [13:0] dconv_partial_sum9    ;
-wire [13:0] dconv_partial_sum10   ;
-wire [13:0] dconv_partial_sum11   ;
-wire [13:0] dconv_partial_sum12   ;
-wire [13:0] dconv_partial_sum13   ;
-wire [13:0] dconv_partial_sum14   ;
-wire [13:0] dconv_partial_sum15   ;
-
-wire dsram_cen0    ;
-wire dsram_cen1    ;
-wire dsram_cen2    ;
-wire dsram_cen3    ;
-wire dsram_cen4    ;
-wire dsram_cen5    ;
-wire dsram_cen6    ;
-wire dsram_cen7    ;
-wire [7:0] dsram_data_out0  ;
-wire [7:0] dsram_data_out1  ;
-wire [7:0] dsram_data_out2  ;
-wire [7:0] dsram_data_out3  ;
-wire [7:0] dsram_data_out4  ;
-wire [7:0] dsram_data_out5  ;
-wire [7:0] dsram_data_out6  ;
-wire [7:0] dsram_data_out7  ;
-
-
-wire  [7:0] dsram_addr	 ; 
-wire       dsram_cen ;
-wire       dsram_wen ;
-assign dsram_addr= sram_addr[0];
-assign dsram_cen  = sram_cen[0];
-assign dsram_wen =  sram_wen[0];
-assign dsram_data_out =  sram_data_out[0];
-assign dsram_cen_r =  sram_cen_r[1][0];
-assign dsram_cen_r1 =  sram_cen_r[1][1];
-assign dsram_cen_r11 =  sram_cen_r[1][2];
-assign dsram_cen_r111 =  sram_cen_r[6][2];
-assign dconv_partial_sum0  = conv_partial_sum[0 ];
-assign dconv_partial_sum1  = conv_partial_sum[1 ];
-assign dconv_partial_sum2  = conv_partial_sum[2 ];
-assign dconv_partial_sum3  = conv_partial_sum[3 ];
-assign dconv_partial_sum4  = conv_partial_sum[4 ];
-assign dconv_partial_sum5  = conv_partial_sum[5 ];
-assign dconv_partial_sum6  = conv_partial_sum[6 ];
-assign dconv_partial_sum7  = conv_partial_sum[7 ];
-assign dconv_partial_sum8  = conv_partial_sum[8 ];
-assign dconv_partial_sum9  = conv_partial_sum[9 ];
-assign dconv_partial_sum10 = conv_partial_sum[10];
-assign dconv_partial_sum11 = conv_partial_sum[11];
-assign dconv_partial_sum12 = conv_partial_sum[12];
-assign dconv_partial_sum13 = conv_partial_sum[13];
-assign dconv_partial_sum14 = conv_partial_sum[14];
-assign dconv_partial_sum15 = conv_partial_sum[15];
-
-
-assign dsram_cen0  = sram_cen[0 ];
-assign dsram_cen1  = sram_cen[1 ];
-assign dsram_cen2  = sram_cen[2 ];
-assign dsram_cen3  = sram_cen[3 ];
-assign dsram_cen4  = sram_cen[4 ];
-assign dsram_cen5  = sram_cen[5 ];
-assign dsram_cen6  = sram_cen[6 ];
-assign dsram_cen7  = sram_cen[7 ];
-
-assign dsram_data_out0  = sram_data_out[0 ];
-assign dsram_data_out1  = sram_data_out[1 ];
-assign dsram_data_out2  = sram_data_out[2 ];
-assign dsram_data_out3  = sram_data_out[3 ];
-assign dsram_data_out4  = sram_data_out[4 ];
-assign dsram_data_out5  = sram_data_out[5 ];
-assign dsram_data_out6  = sram_data_out[6 ];
-assign dsram_data_out7  = sram_data_out[7 ];
 // ---------------------------------------------------------------------------
 // Continuous Assignment
 // ---------------------------------------------------------------------------
@@ -685,15 +601,6 @@ always @( posedge i_clk or negedge i_rst_n) begin
 end
 
 // Store current instruction
-/* always @( posedge i_clk or negedge i_rst_n) begin
-	if(~i_rst_n) begin
-		current_op_r <= 0;
-		current_op_w <= 0;
-	end else
-		current_op_r <= current_op_w;
-end */
-
-// Store current instruction
 always @( posedge i_clk or negedge i_rst_n) begin
 	for(integer i=0; i<NUM_SRAM; i=i+1) begin
 		if(~i_rst_n) begin
@@ -722,10 +629,8 @@ generate
 				sram_addr_delay_r[SRAM_inst][1] <= 0;
 				sram_addr_delay_r[SRAM_inst][2] <= 0;
 				sram_addr_delay_w[SRAM_inst]    <= 0;
-				tsram_addr_delay_r    <= 0;
 			end
 			else begin
-				tsram_addr_delay_r <= sram_addr_delay_w[SRAM_inst] ;
 				sram_addr_delay_r[SRAM_inst][0] <= sram_addr_delay_w[SRAM_inst];
 				sram_addr_delay_r[SRAM_inst][1] <= sram_addr_delay_r[SRAM_inst][0];
 				sram_addr_delay_r[SRAM_inst][2] <= sram_addr_delay_r[SRAM_inst][1];
