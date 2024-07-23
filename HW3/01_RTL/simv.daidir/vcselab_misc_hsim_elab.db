@@ -1,6 +1,6 @@
 psSimBaseName                      	simv
 psLogFileName                      	NULL
-pDaiDir                            	/home/MingKe/Study/NTU_CVSD2023/HW3/01_RTL/simv.daidir
+pDaiDir                            	/home/MingKe/Study/HW3_SRAM_256/HW3/01_RTL/simv.daidir
 destPath                           	csrc/
 fSharedMaster                      	0
 fHsimPCSharedLibSpecified          	0

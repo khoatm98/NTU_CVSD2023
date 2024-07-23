@@ -1,0 +1,5 @@
+0 flist.v
+    1 ../00_TESTBED/define.v
+    2 ./core.v
+    3 ./reg_file.v
+    4 ./alu.v

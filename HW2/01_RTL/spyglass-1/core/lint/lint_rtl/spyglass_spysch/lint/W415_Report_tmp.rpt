@@ -1,0 +1,5 @@
+1,./core.v,86,core.pc_overflow,core.pc_overflow_reg_1.Q (File: ./core.v Line: 200),core.pc_overflow_reg.Q (File: ./core.v Line: 86)
+2,./core.v,173,core.next_state[0],core.\next_state_reg[0] .Q (File: ./core.v Line: 198),core.rtlc_I314.Z (File: ./core.v Line: 173)
+3,./core.v,173,core.next_state[1],core.\next_state_reg[1] .Q (File: ./core.v Line: 198),core.rtlc_I316.Z (File: ./core.v Line: 173)
+4,./core.v,173,core.next_state[2],core.\next_state_reg[2] .Q (File: ./core.v Line: 198),core.rtlc_I318.Z (File: ./core.v Line: 173)
+5,./core.v,130,core.next_state[3],core.\next_state_reg[3] .Q (File: ./core.v Line: 198),core.rtlc_I434.Z (File: ./core.v Line: 130)

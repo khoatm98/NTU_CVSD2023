@@ -1,4 +1,4 @@
-`define SRAM_4096
+`define SRAM_256
 module core (                       //Don't modify interface
 	input         i_clk,
 	input         i_rst_n,
@@ -44,27 +44,27 @@ parameter MAP_COL    		  = 8;
 // ---- Add your own wires and registers here if needed ---- //
 
 reg [3:0]   state, next_state;
-reg [ 7:0]  current_op_r, current_op_w;
+//reg [ 7:0]  current_op_r, current_op_w;
 // Flag for loading img
-wire 	  load_map_done;
+wire 	   load_map_done;
 // Flag for display operation
-reg 	  display_done;
+reg 	   display_done;
 // Flag for med filter operation
-reg 	  med_filter_done;
+reg 	   med_filter_done, convolution_done;
 // Flag for sobber nms operation
-reg 	  sober_nms_done;
-reg [5:0]  depth;
+reg 	   sober_nms_done;
+reg [5:0]  depth_r, depth_w;
 
-reg [12:0] cnt;
-reg [3:0]  origin_index_x;
-reg [3:0]  origin_index_y;
+reg [11:0] cnt, target_sticks;
+reg [3:0]  origin_index_x_r, origin_index_x_w;
+reg [3:0]  origin_index_y_r, origin_index_y_w;
 reg signed [3:0]  new_x;
-reg signed [3:0]  new_y;
+reg signed [3:0]  new_y, new_y_delay1, new_y_delay2;
 reg  [5:0]  new_z;
 
-reg [10:0]     conv_index_r, conv_index_w, last_2index_r, last_2index_w, last_1index_r, last_1index_w;
+reg [10:0]     index_delay_r[2:0], index_delay_w, test_index_delay_r, test_index_delay_r1;
 reg [13:0]    conv_sum;
-reg [13:0]    conv_partial_sum[15:0], test_sum;
+reg [13:0]    conv_partial_sum[15:0];
 reg [13:0]    med_filter_partial_sum[3:0][3:0];
 reg [4:0] 	 counter_r, counter_w;
 reg [13:0] out_data_w, out_data_r;
@@ -72,46 +72,117 @@ reg        out_valid_w, out_valid_r;
 reg 	   o_in_ready_w, o_in_ready_r;
 reg [16:0] out_data_w_17;
 
-
-reg [13:0] conv_partial_sum0 ;
-reg [13:0] conv_partial_sum1 ;
-reg [13:0] conv_partial_sum2 ;
-reg [13:0] conv_partial_sum3 ;
-reg [13:0] conv_partial_sum4 ;
-reg [13:0] conv_partial_sum5 ;
-reg [13:0] conv_partial_sum6 ;
-reg [13:0] conv_partial_sum7 ;
-reg [13:0] conv_partial_sum8 ;
-reg [13:0] conv_partial_sum9 ;
-reg [13:0] conv_partial_sum10 ;
-reg [13:0] conv_partial_sum11;
-reg [13:0] conv_partial_sum12;
-reg [13:0] conv_partial_sum13;
-reg [13:0] conv_partial_sum14;
-reg [13:0] conv_partial_sum15;
-
-
-reg [6:0] med_filter_index_r, med_filter_index_w, sober_nms_index_r, sober_nms_index_w;
 reg [2:0] out_counter_w, out_counter_r;
 reg [7:0] i_r[15:0];
 wire [7:0]o_med_data[3:0];
 wire [13:0]o_sobel_nms[3:0];
-wire [7:0] sram_data_out ;
-wire       sram_wen       ;
-reg        sram_wen_r, sram_wen_w      ;
-wire       sram_cen       ;
-reg        sram_cen_r, sram_cen_w      ;
+wire         activate_median_filter, activate_sobel_nms;
+
+
+// SRAM wires
+reg  [2:0] sram_wen_r[NUM_SRAM-1:0], sram_cen_r[NUM_SRAM-1:0];
+reg        sram_wen_w[NUM_SRAM-1:0], sram_cen_w[NUM_SRAM-1:0];
+wire       sram_cen      [NUM_SRAM-1:0];
+wire       sram_wen      [NUM_SRAM-1:0];
+wire [7:0] sram_data_out [NUM_SRAM-1:0];
 `ifdef SRAM_256
-wire  [7:0] sram_addr	 [NUM_SRAM-1:0]; 
+wire  [7:0] sram_addr	 		 [NUM_SRAM-1:0]; 
+reg  [7:0] sram_addr_delay_r	 [NUM_SRAM-1:0][2:0], sram_addr_delay_w[NUM_SRAM-1:0], tsram_addr_delay_r; 
 `elsif SRAM_512
-wire  [8:0] sram_addr	 [NUM_SRAM-1:0]; 
+wire  [8:0] sram_addr	 		 [NUM_SRAM-1:0]; 
+wire  [8:0] sram_addr_delay_r	 [2:0][NUM_SRAM-1:0], sram_addr_delay_w[NUM_SRAM-1:0], tsram_addr_delay_r; 
 `elsif SRAM_4096
-wire  [11:0] sram_addr	 ; 
-reg   [11:0] sram_addr_w;
+wire   [11:0] sram_addr   [NUM_SRAM-1:0]; 
+reg   [11:0] sram_addr_delay_r  [2:0], sram_addr_delay_w[NUM_SRAM-1:0], tsram_addr_delay_r; 
 `endif
 
-wire  [7:0] sram_data	, sram_data_w ; 
-reg   [7:0] sram_data_r; 
+wire  [7:0] sram_data[NUM_SRAM-1:0], sram_data_w[NUM_SRAM-1:0]; 
+reg   [7:0] sram_data_r[NUM_SRAM-1:0];
+wire [7:0] dsram_data_out;
+wire dsram_cen_r,dsram_cen_r1,dsram_cen_r11,dsram_cen_r111;
+
+//debug
+wire [13:0] dconv_partial_sum0    ;
+wire [13:0] dconv_partial_sum1    ;
+wire [13:0] dconv_partial_sum2    ;
+wire [13:0] dconv_partial_sum3    ;
+wire [13:0] dconv_partial_sum4    ;
+wire [13:0] dconv_partial_sum5    ;
+wire [13:0] dconv_partial_sum6    ;
+wire [13:0] dconv_partial_sum7    ;
+wire [13:0] dconv_partial_sum8    ;
+wire [13:0] dconv_partial_sum9    ;
+wire [13:0] dconv_partial_sum10   ;
+wire [13:0] dconv_partial_sum11   ;
+wire [13:0] dconv_partial_sum12   ;
+wire [13:0] dconv_partial_sum13   ;
+wire [13:0] dconv_partial_sum14   ;
+wire [13:0] dconv_partial_sum15   ;
+
+wire dsram_cen0    ;
+wire dsram_cen1    ;
+wire dsram_cen2    ;
+wire dsram_cen3    ;
+wire dsram_cen4    ;
+wire dsram_cen5    ;
+wire dsram_cen6    ;
+wire dsram_cen7    ;
+wire [7:0] dsram_data_out0  ;
+wire [7:0] dsram_data_out1  ;
+wire [7:0] dsram_data_out2  ;
+wire [7:0] dsram_data_out3  ;
+wire [7:0] dsram_data_out4  ;
+wire [7:0] dsram_data_out5  ;
+wire [7:0] dsram_data_out6  ;
+wire [7:0] dsram_data_out7  ;
+
+
+wire  [7:0] dsram_addr	 ; 
+wire       dsram_cen ;
+wire       dsram_wen ;
+assign dsram_addr= sram_addr[0];
+assign dsram_cen  = sram_cen[0];
+assign dsram_wen =  sram_wen[0];
+assign dsram_data_out =  sram_data_out[0];
+assign dsram_cen_r =  sram_cen_r[1][0];
+assign dsram_cen_r1 =  sram_cen_r[1][1];
+assign dsram_cen_r11 =  sram_cen_r[1][2];
+assign dsram_cen_r111 =  sram_cen_r[6][2];
+assign dconv_partial_sum0  = conv_partial_sum[0 ];
+assign dconv_partial_sum1  = conv_partial_sum[1 ];
+assign dconv_partial_sum2  = conv_partial_sum[2 ];
+assign dconv_partial_sum3  = conv_partial_sum[3 ];
+assign dconv_partial_sum4  = conv_partial_sum[4 ];
+assign dconv_partial_sum5  = conv_partial_sum[5 ];
+assign dconv_partial_sum6  = conv_partial_sum[6 ];
+assign dconv_partial_sum7  = conv_partial_sum[7 ];
+assign dconv_partial_sum8  = conv_partial_sum[8 ];
+assign dconv_partial_sum9  = conv_partial_sum[9 ];
+assign dconv_partial_sum10 = conv_partial_sum[10];
+assign dconv_partial_sum11 = conv_partial_sum[11];
+assign dconv_partial_sum12 = conv_partial_sum[12];
+assign dconv_partial_sum13 = conv_partial_sum[13];
+assign dconv_partial_sum14 = conv_partial_sum[14];
+assign dconv_partial_sum15 = conv_partial_sum[15];
+
+
+assign dsram_cen0  = sram_cen[0 ];
+assign dsram_cen1  = sram_cen[1 ];
+assign dsram_cen2  = sram_cen[2 ];
+assign dsram_cen3  = sram_cen[3 ];
+assign dsram_cen4  = sram_cen[4 ];
+assign dsram_cen5  = sram_cen[5 ];
+assign dsram_cen6  = sram_cen[6 ];
+assign dsram_cen7  = sram_cen[7 ];
+
+assign dsram_data_out0  = sram_data_out[0 ];
+assign dsram_data_out1  = sram_data_out[1 ];
+assign dsram_data_out2  = sram_data_out[2 ];
+assign dsram_data_out3  = sram_data_out[3 ];
+assign dsram_data_out4  = sram_data_out[4 ];
+assign dsram_data_out5  = sram_data_out[5 ];
+assign dsram_data_out6  = sram_data_out[6 ];
+assign dsram_data_out7  = sram_data_out[7 ];
 // ---------------------------------------------------------------------------
 // Continuous Assignment
 // ---------------------------------------------------------------------------
@@ -119,155 +190,232 @@ reg   [7:0] sram_data_r;
 genvar SRAM_inst;
 generate
 	for(SRAM_inst = 0; SRAM_inst < NUM_SRAM; SRAM_inst = SRAM_inst + 1) begin:SRAM_inst_loop
-		sram_4096x8 u_sram (
-			.Q(sram_data_out),
+		sram_256x8 u_sram (
+			.Q(sram_data_out[SRAM_inst]),
 			.CLK(i_clk),
-			.CEN(sram_cen),
-			.WEN(sram_wen),
-			.A(sram_addr),
-			.D(sram_data)
+			.CEN(sram_cen[SRAM_inst]),
+			.WEN(sram_wen[SRAM_inst]),
+			.A(sram_addr[SRAM_inst]),
+			.D(sram_data[SRAM_inst])
 			);
+		assign sram_data[SRAM_inst]  = sram_data_r[SRAM_inst];
+		assign sram_data_w[SRAM_inst]       = i_in_valid? i_in_data : sram_data_w[SRAM_inst];
+		assign sram_addr[SRAM_inst]  = sram_addr_delay_r[SRAM_inst][0];
+		assign sram_wen[SRAM_inst] = sram_wen_r[SRAM_inst][0];
+		assign sram_cen[SRAM_inst] = sram_cen_r[SRAM_inst][0];
 	end
+	
 endgenerate
 
-median_filter u_med_filter_inst0 (i_r[10], i_r[9], i_r[8], i_r[6], i_r[5], i_r[4], i_r[2], i_r[1], i_r[0], o_med_data[0]);
-median_filter u_med_filter_inst1 (i_r[11], i_r[10], i_r[9], i_r[7], i_r[6], i_r[5], i_r[3], i_r[2], i_r[1], o_med_data[1]);
-median_filter u_med_filter_inst2 (i_r[14], i_r[13], i_r[12], i_r[10], i_r[9], i_r[8], i_r[6], i_r[5], i_r[4], o_med_data[2]);
-median_filter u_med_filter_inst3 (i_r[15], i_r[14], i_r[13], i_r[11], i_r[10], i_r[9], i_r[7], i_r[6], i_r[5], o_med_data[3]);
+median_filter u_med_filter_inst0 (i_r[0], i_r[1], i_r[2], i_r[3], i_r[4], i_r[5], i_r[6], i_r[7], i_r[8], i_r[9], i_r[10], i_r[11], i_r[12], i_r[13], i_r[14], i_r[15],activate_median_filter, o_med_data[3:0]);
 
 
-sobel_nms sobel_nms_inst0(i_r[0], i_r[1], i_r[2], i_r[3], i_r[4], i_r[5], i_r[6], i_r[7], i_r[8], i_r[9], i_r[10], i_r[11], i_r[12], i_r[13], i_r[14], i_r[15], o_sobel_nms[3:0]);
+sobel_nms sobel_nms_inst0(i_r[0], i_r[1], i_r[2], i_r[3], i_r[4], i_r[5], i_r[6], i_r[7], i_r[8], i_r[9], i_r[10], i_r[11], i_r[12], i_r[13], i_r[14], i_r[15],activate_sobel_nms, o_sobel_nms[3:0]);
+
+
+assign test_index_delay_r = index_delay_r[0];
+assign test_index_delay_r1 = index_delay_r[2];
 assign load_map_done = cnt == 2048;
-assign display_done  = cnt == 4*(depth) + 1;  // one extra cycle for DECODE
-assign convolution_done  = (conv_index_r >= 16*depth + 2)  && counter_r == 4;  
-assign convolution_calc_done  = (conv_index_r >= 16*depth +2 ) && counter_r <= 4; 
-
-
-assign med_filter_done  = med_filter_index_r == 69; 
-
-assign sober_nms_done = med_filter_index_r == 69; 
+assign display_done  = (cnt == 4*(depth_r) );  // one extra cycle for DECODE
+assign convolution_done  = index_delay_r[2] >= 16*depth_r;
+assign med_filter_done = index_delay_r[2] >= 80; // 64 + 16 ( 4 cyles for output)
+assign sober_nms_done  = index_delay_r[2] >= 80;
 assign o_op_ready = (state == FETCH) & i_rst_n;
 assign o_in_ready = o_in_ready_r;
 assign o_out_valid = out_valid_r;
 
 assign o_out_data  = out_data_r;
 
-assign sram_addr  = sram_addr_w;
-assign sram_data  = sram_data_r;
-assign sram_wen = sram_wen_r;
-assign sram_cen = sram_cen_r;
 
-assign sram_data_w = i_in_data;
+
+
+
 // ---------------------------------------------------------------------------
 // Combinational Blocks
 // ---------------------------------------------------------------------------
 // ---- Write your conbinational block design here ---- //
-always @(posedge i_clk ) begin
-	if(next_state[3:1] == 3'b001) begin// SCALE
-		depth = next_state[0]? (depth == 32  ? depth: depth<<1): (depth == 8 ? depth : depth>>1); 
+always @(*) begin
+	if(state[3:1] == 3'b001) begin// SCALE
+		depth_w = state[0]? (depth_r == 32  ? depth_r: depth_r<<1): (depth_r == 8 ? depth_r : depth_r>>1); 
 		
 	end
-	else if(next_state[3:2] == 2'b01) begin// SHIFT
+	else if(state[3:2] == 2'b01) begin// SHIFT
 		//right
 		//left
-		if(next_state[1]==0)
-			origin_index_x = next_state[0] == 0 ? (origin_index_x == (MAP_COL-2) ? origin_index_x: origin_index_x + 1): (origin_index_x == 0 ? origin_index_x : origin_index_x - 1); 
+		if(state[1]==0)
+			origin_index_x_w = state[0] == 0 ? (origin_index_x_r == (MAP_COL-2) ? origin_index_x_r: origin_index_x_r + 1): (origin_index_x_r == 0 ? origin_index_x_r : origin_index_x_r - 1); 
 		//up
 		//down
 		else begin
-			origin_index_y = next_state[0] == 1 ? (origin_index_y == (MAP_ROW-2) ? origin_index_y: origin_index_y + 1): (origin_index_y == 0 ? origin_index_y : origin_index_y - 1); 
+			origin_index_y_w = state[0] == 1 ? (origin_index_y_r == (MAP_ROW-2) ? origin_index_y_r: origin_index_y_r + 1): (origin_index_y_r == 0 ? origin_index_y_r : origin_index_y_r - 1); 
 		end
 			
 	end
 end
 
+always @(*) begin
+	if(state == MED_FILTER || state == SOBER_NMS) begin
+		if (med_filter_done || sober_nms_done) begin
+			for(integer i=0; i<NUM_SRAM; i=i+1) begin
+				sram_cen_w[i]  = 1;
+				sram_wen_w[i]  = 1;
+			end
+			index_delay_w = 0;
+		end
+		else begin
+			if(out_counter_r > 0) begin
+				out_valid_r = 1;
+				out_data_r  = state == MED_FILTER  ? o_med_data[4-out_counter_r] :  o_sobel_nms[4-out_counter_r];
+				out_counter_w = out_counter_r - 1;
+			end
+			if(out_counter_r <= 4) begin
+				out_valid_r = out_counter_r != 0;
+				out_valid_w = 0;
+				new_z = index_delay_r[0] >= 16*depth_r? depth_r : (index_delay_r[0])/16;
+				new_x = origin_index_x_r - 1; 
+				new_y = origin_index_y_r + (index_delay_r[0]%16)/4 - 1;
+				if (index_delay_r[0] < 16*depth_r) begin
+					if(new_y%2 == 0) begin
+						if(new_x >= $signed(0)) begin
+							sram_addr_delay_w[new_x] = new_y + new_z*MAP_ROW;
+							sram_addr_delay_w[(new_x+4)%8] = new_y + 1 + new_z*MAP_ROW;
+							sram_cen_w[new_x] = 0; 
+							sram_cen_w[(new_x+4)%8] = 0; 
+						end 
+						if (new_x < MAP_COL - 3) begin
+							sram_addr_delay_w[new_x + 3] = new_y + new_z*MAP_ROW;
+							sram_addr_delay_w[(new_x+3+4)%8] = new_y + 1 + new_z*MAP_ROW;
+							sram_cen_w[new_x + 3] = 0; 
+							sram_cen_w[(new_x+3+4)%8] = 0; 
+						end
+						sram_addr_delay_w[new_x + 1] = new_y + new_z*MAP_ROW;
+						sram_addr_delay_w[new_x + 2] = new_y + new_z*MAP_ROW;
+						sram_addr_delay_w[(new_x+1+4)%8] = new_y + 1 + new_z*MAP_ROW;
+						sram_addr_delay_w[(new_x+2+4)%8] = new_y + 1 + new_z*MAP_ROW;
+						
+						sram_cen_w[new_x + 1] = 0; 
+						sram_cen_w[(new_x+1+4)%8] = 0; 
+						sram_cen_w[new_x + 2] = 0; 
+						sram_cen_w[(new_x+2+4)%8] = 0; 
+					end
+					else begin
+						
+						if(new_x >= $signed(0)) begin
+							sram_addr_delay_w[(new_x+4)%8] = new_y + new_z*MAP_ROW;
+							sram_addr_delay_w[new_x] = $signed(new_y + 1) + new_z*MAP_ROW;
+							sram_cen_w[new_x] = new_y >= MAP_COL-2 ? 1 :0; 
+							sram_cen_w[(new_x+4)%8] = new_y < $signed(0) ? 1 : 0; 
+						end 
+						if (new_x < $signed(MAP_COL - 3)) begin
+							sram_addr_delay_w[(new_x+3+4)%8] = new_y + new_z*MAP_ROW;
+							sram_addr_delay_w[new_x + 3] = $signed(new_y + 1) + new_z*MAP_ROW;
+							sram_cen_w[new_x + 3] = new_y >= MAP_COL-2 ? 1 :0; 
+							sram_cen_w[(new_x+3+4)%8] = new_y < $signed(0) ? 1 : 0; 
+						end
+						sram_addr_delay_w[new_x + 1] = $signed(new_y + 1) + new_z*MAP_ROW;
+						sram_addr_delay_w[new_x + 2] = $signed(new_y + 1) + new_z*MAP_ROW;
+						sram_addr_delay_w[(new_x+1+4)%8] = new_y + new_z*MAP_ROW;
+						sram_addr_delay_w[(new_x+2+4)%8] = new_y  + new_z*MAP_ROW;
+						
+						sram_cen_w[new_x + 1] = new_y >= MAP_COL-2 ? 1 :0; 
+						sram_cen_w[(new_x+1+4)%8] = new_y < $signed(0) ? 1 : 0; 
+						sram_cen_w[new_x + 2] = new_y >= MAP_COL-2 ? 1 :0; 
+						sram_cen_w[(new_x+2+4)%8] = new_y < $signed(0) ? 1 : 0; 
+					end
+				end
+				if(index_delay_r[0]/16 <= counter_r) begin
+					index_delay_w = index_delay_r[0] + 8;
+				end
+				
+				
+				if(index_delay_r[1]/16 > counter_r) begin
+					counter_w = counter_r + 1;
+					out_counter_w = 4;
+				end
+			end
+		end
+	end
+end
+
+
 
 always @(*) begin
 	casez(state)
 		FETCH      : begin
-			sram_cen_w  = 1;
-			o_in_ready_w = 0;
-			out_valid_w = 0;
-			out_valid_r = 0;
+			target_sticks = 0;
 		end
 		DECODE     : begin
 			cnt  = 0;
+			out_counter_w = 0;
 			if      (i_op_mode == `OP_MAP_LOADING) begin // MAP LOADING
-				sram_wen_w  = 0;
-				sram_cen_w  = 0;
 				o_in_ready_w = 1;
-				current_op_w = `OP_MAP_LOADING;
+				for(integer i=0; i<NUM_SRAM; i=i+1) begin
+					sram_addr_delay_w[i] = 0;
+				end
 			end
 			else if (i_op_mode == `OP_R_SHIFT       )begin //SHIFT
-				current_op_w = `OP_R_SHIFT;
 			end                                      
 			else if (i_op_mode == `OP_L_SHIFT       )begin // SHIFT
-				current_op_w = `OP_L_SHIFT;
 			end                                      
 			else if (i_op_mode == `OP_U_SHIFT       )begin // SHIFT
-				current_op_w = `OP_U_SHIFT;
 			end                                    
 			else if (i_op_mode == `OP_D_SHIFT       )begin // SHIFT
-			    current_op_w = `OP_D_SHIFT;
 			end                                    
 			else if (i_op_mode == `OP_SCALE_DOWN  )begin // SCALE
-				current_op_w = `OP_SCALE_DOWN;
 			end
 			else if (i_op_mode == `OP_SCALE_UP)begin // SCALE
-				current_op_w = `OP_SCALE_UP;
 			end
 			else if (i_op_mode == `OP_DISPLAY       )begin // DISPLAY
-				// Start reading sram 1 cycle earlier
-				sram_addr_w = origin_index_x + origin_index_y*MAP_COL;
-				sram_wen_w  = 1;
-				sram_wen_r  = 1;
-				sram_cen_w  = 0;
-				sram_cen_r  = 0;
-				current_op_w = `OP_DISPLAY;
+				for(integer i=0; i<NUM_SRAM; i=i+1) begin
+					sram_wen_w[i] = 1;
+				end
 			end
 			else if (i_op_mode == `OP_CONV         ) begin // CONV
-				conv_index_w = 0;
-				sram_cen_w  = 0;
-				sram_wen_w  = 1;
-				counter_w = 0;
-				current_op_w = `OP_CONV;
+				index_delay_w = 0;
 				for(integer i=0; i<16; i=i+1) begin
 					conv_partial_sum[i] = 0;
 				end
-				
+				for(integer i=0; i<NUM_SRAM; i=i+1) begin
+					sram_wen_w[i] = 1;
+					sram_cen_w[i]  = 1;
+				end
 			end
-			else if (i_op_mode == `OP_MED_FILTER   )begin // MED filter
-				current_op_w = `OP_MED_FILTER;
-				med_filter_index_w = 0;
-				sram_cen_w  = 0;
-				sram_wen_w  = 1;
+			else if (i_op_mode == `OP_MED_FILTER  || i_op_mode ==`OP_SOBEL_NMS  )begin // MED filter
 				counter_w = 0;
-				out_counter_w = 0;
 				for(integer i=0; i<16; i=i+1) begin
 					i_r[i] = 0;
 				end
-			end
-			else if (i_op_mode ==`OP_SOBEL_NMS    )begin
-				current_op_w = `OP_SOBEL_NMS;
-				med_filter_index_w = 0;
-				sram_cen_w  = 0;
-				sram_wen_w  = 1;
-				counter_w = 0;
-				out_counter_w = 0;
-				for(integer i=0; i<16; i=i+1) begin
-					i_r[i] = 0;
+				
+				for(integer i=0; i<NUM_SRAM; i=i+1) begin
+					sram_cen_w[i]  = 1;
+					sram_wen_w[i]  = 1;
 				end
 			end
 			else begin
 			end
 		end
 		LOAD_MAP   : begin
+			target_sticks = 2048;
+			
+			for(integer i=0; i<NUM_SRAM; i=i+1) begin
+				sram_cen_w[i] = 1;
+			end
 			if (load_map_done) begin
-				sram_cen_w  = 1;
-				sram_cen_r  = 1;
+				o_in_ready_w = 0;
+				sram_wen_w[0]  = 1;
 			end
 			else begin
-				sram_addr_w = cnt;
+				new_z = cnt/64;
+				new_x = (cnt%64)%8;
+				new_y = (cnt%64)/8;
+				if(new_y%2 == 0) begin
+					sram_addr_delay_w[new_x] = new_y + new_z*MAP_ROW;
+					sram_cen_w[new_x] = 0; 
+				end
+				else begin
+					sram_addr_delay_w[(new_x+4)%8] = new_y + new_z*MAP_ROW;
+					sram_cen_w[(new_x+4)%8] = 0; 
+				end
 			end
 				
 		end
@@ -278,194 +426,139 @@ always @(*) begin
 		4'b01zz      : begin
 		end
 		DISPLAY    : begin
+			target_sticks = 4*depth_r;
+			out_valid_w = 0;
+			for(integer i=0; i<NUM_SRAM; i=i+1) begin
+				sram_cen_w[i] = 1;
+				if ( sram_cen_r[i][2] == 0) begin
+					out_valid_w = 1;
+					out_data_w = sram_data_out[i];
+					//$display("%d %d", i , sram_data_out[i]);
+				end else begin
+					//out_data_w = out_data_r;
+				end
+			end
 			if (display_done) begin
-				out_valid_w = 0;
-				sram_cen_w  = 1;
-				sram_cen_r  = 1;
 			end
 			else begin
-				out_valid_w = 1;
-				out_data_w = sram_data_out;
 				new_z = cnt>>2;
-				new_x = origin_index_x + ((cnt%4) %2 == 1); 
-				new_y = origin_index_y + ((cnt%4)     > 1);
-				sram_addr_w = new_x + new_y*MAP_COL + new_z*MAP_COL*MAP_ROW;
+				new_x = origin_index_x_r + ((cnt%4) %2 == 1); 
+				new_y = origin_index_y_r + ((cnt%4)     > 1);
+				if(new_y%2 == 0) begin
+					sram_addr_delay_w[new_x] = new_y + new_z*MAP_ROW;
+					sram_cen_w[new_x] = 0; 
+				end
+				else begin
+					sram_addr_delay_w[(new_x+4)%8] = new_y + new_z*MAP_ROW;
+					sram_cen_w[(new_x+4)%8] = 0; 
+				end
 			end
 		end
 		CONV_CALC  : begin
-			if (convolution_calc_done) begin
-				out_valid_w = 1;
-				if (counter_r <=1) begin
-				out_data_w_17 = ((conv_partial_sum[counter_r])    )    + 
-								((conv_partial_sum[1+counter_r] ) <<1)   + 
-								((conv_partial_sum[2+counter_r] ) )    + 
-								((conv_partial_sum[4+counter_r] ) <<1)    + 
-								((conv_partial_sum[5+counter_r] ) <<2)   + 
-								((conv_partial_sum[6+counter_r] ) <<1)   + 
-								((conv_partial_sum[8+counter_r] ) )   + 
-								((conv_partial_sum[9+counter_r] ) <<1)  + 
-								((conv_partial_sum[10+counter_r]) );
-				end
-				else begin
-				out_data_w_17 = ((conv_partial_sum[2 +counter_r])    )    + 
-								((conv_partial_sum[3 +counter_r] ) <<1)   + 
-								((conv_partial_sum[4 +counter_r] ) )    + 
-								((conv_partial_sum[6 +counter_r] ) <<1)    + 
-								((conv_partial_sum[7 +counter_r] ) <<2)   + 
-								((conv_partial_sum[8 +counter_r] ) <<1)   + 
-								((conv_partial_sum[10 +counter_r] ) )   + 
-								((conv_partial_sum[11 +counter_r] ) <<1)  + 
-								((conv_partial_sum[12+counter_r]) );
-				end
-				out_data_w = (out_data_w_17 >> 4) + out_data_w_17[3];
-				//$display("%d %d %d %d %d %d %d %d %d",  conv_partial_sum[counter_r]>>4,conv_partial_sum[1+counter_r]>>3,conv_partial_sum[2+counter_r]>>4 ,conv_partial_sum[4+counter_r]>>3 ,conv_partial_sum[5+counter_r]>>2 ,conv_partial_sum[6+counter_r]>>3,conv_partial_sum[8+counter_r]>>4 ,conv_partial_sum[9+counter_r]>>3,conv_partial_sum[10+counter_r]>>4);
-				if (convolution_done) begin
+			
+			if (convolution_done) begin
+				if(out_counter_r<4) begin
+					out_valid_w = 1;
+					if (out_counter_r <=1) begin
+					out_data_w_17 = ((conv_partial_sum[out_counter_r])    )    + 
+									((conv_partial_sum[1+out_counter_r] ) <<1)   + 
+									((conv_partial_sum[2+out_counter_r] ) )    + 
+									((conv_partial_sum[4+out_counter_r] ) <<1)    + 
+									((conv_partial_sum[5+out_counter_r] ) <<2)   + 
+									((conv_partial_sum[6+out_counter_r] ) <<1)   + 
+									((conv_partial_sum[8+out_counter_r] ) )   + 
+									((conv_partial_sum[9+out_counter_r] ) <<1)  + 
+									((conv_partial_sum[10+out_counter_r]) );
+					end
+					else begin
+					out_data_w_17 = ((conv_partial_sum[2 +out_counter_r])    )    + 
+									((conv_partial_sum[3 +out_counter_r] ) <<1)   + 
+									((conv_partial_sum[4 +out_counter_r] ) )    + 
+									((conv_partial_sum[6 +out_counter_r] ) <<1)    + 
+									((conv_partial_sum[7 +out_counter_r] ) <<2)   + 
+									((conv_partial_sum[8 +out_counter_r] ) <<1)   + 
+									((conv_partial_sum[10 +out_counter_r] ) )   + 
+									((conv_partial_sum[11 +out_counter_r] ) <<1)  + 
+									((conv_partial_sum[12+out_counter_r]) );
+					end
+					out_data_w = (out_data_w_17 >> 4) + out_data_w_17[3];
+					
+					
+					out_counter_w    = out_counter_r + 1;
+				end else begin
 					out_valid_w = 0;
-					//conv_index_r = 0;
-					conv_index_w = 0;
-					sram_cen_w  = 1;
-					sram_cen_r  = 1;
-					last_2index_w = 0;
-					last_1index_w = 0;
+					index_delay_w = 0;
 				end
-				else begin
 				
-					counter_w = counter_r + 1;
-					conv_index_w = conv_index_r + 1;
-				end
 				
 			end
 			else begin
-				last_2index_w = last_1index_r;
-				last_1index_w = conv_index_r;
-				
-				new_z = (conv_index_r)%depth;
-				new_x = origin_index_x + ((conv_index_r/depth)% 4) - 1; 
-				new_y = origin_index_y + ((conv_index_r/depth)>>2) - 1;
-				if(new_x < $signed(0) || new_y <$signed(0) || new_x >= MAP_COL || new_y >= MAP_ROW || new_z >= depth) begin
-					if (conv_index_r < 16*depth) begin
-						conv_index_r = conv_index_r + depth;
+				new_z = index_delay_r[0] >= 16*depth_r? depth_r : (index_delay_r[0])/16;
+				new_x = origin_index_x_r - 1; 
+				new_y = origin_index_y_r + (index_delay_r[0]%16)/4 - 1;
+				if (index_delay_r[0] < 16*depth_r) begin
+					if(new_y%2 == 0) begin
+						if(new_x >= $signed(0)) begin
+							sram_addr_delay_w[new_x] = new_y + new_z*MAP_ROW;
+							sram_addr_delay_w[(new_x+4)%8] = new_y + 1 + new_z*MAP_ROW;
+							sram_cen_w[new_x] = 0; 
+							sram_cen_w[(new_x+4)%8] = 0; 
+						end 
+						if (new_x < MAP_COL - 3) begin
+							sram_addr_delay_w[new_x + 3] = new_y + new_z*MAP_ROW;
+							sram_addr_delay_w[(new_x+3+4)%8] = new_y + 1 + new_z*MAP_ROW;
+							sram_cen_w[new_x + 3] = 0; 
+							sram_cen_w[(new_x+3+4)%8] = 0; 
+						end
+						sram_addr_delay_w[new_x + 1] = new_y + new_z*MAP_ROW;
+						sram_addr_delay_w[new_x + 2] = new_y + new_z*MAP_ROW;
+						sram_addr_delay_w[(new_x+1+4)%8] = new_y + 1 + new_z*MAP_ROW;
+						sram_addr_delay_w[(new_x+2+4)%8] = new_y + 1 + new_z*MAP_ROW;
+						
+						sram_cen_w[new_x + 1] = 0; 
+						sram_cen_w[(new_x+1+4)%8] = 0; 
+						sram_cen_w[new_x + 2] = 0; 
+						sram_cen_w[(new_x+2+4)%8] = 0; 
 					end
-					else
-						conv_index_w = conv_index_r + 1;
-					
+					else begin
+						
+						if(new_x >= $signed(0)) begin
+							sram_addr_delay_w[(new_x+4)%8] = new_y + new_z*MAP_ROW;
+							sram_addr_delay_w[new_x] = $signed(new_y + 1) + new_z*MAP_ROW;
+							sram_cen_w[new_x] = new_y >= MAP_COL-2 ? 1 :0; 
+							sram_cen_w[(new_x+4)%8] = new_y < $signed(0) ? 1 : 0; 
+						end 
+						if (new_x < $signed(MAP_COL - 3)) begin
+							sram_addr_delay_w[(new_x+3+4)%8] = new_y + new_z*MAP_ROW;
+							sram_addr_delay_w[new_x + 3] = $signed(new_y + 1) + new_z*MAP_ROW;
+							sram_cen_w[new_x + 3] = new_y >= MAP_COL-2 ? 1 :0; 
+							sram_cen_w[(new_x+3+4)%8] = new_y < $signed(0) ? 1 : 0; 
+						end
+						sram_addr_delay_w[new_x + 1] = $signed(new_y + 1) + new_z*MAP_ROW;
+						sram_addr_delay_w[new_x + 2] = $signed(new_y + 1) + new_z*MAP_ROW;
+						sram_addr_delay_w[(new_x+1+4)%8] = new_y + new_z*MAP_ROW;
+						sram_addr_delay_w[(new_x+2+4)%8] = new_y  + new_z*MAP_ROW;
+						
+						sram_cen_w[new_x + 1] = new_y >= MAP_COL-2 ? 1 :0; 
+						sram_cen_w[(new_x+1+4)%8] = new_y < $signed(0) ? 1 : 0; 
+						sram_cen_w[new_x + 2] = new_y >= MAP_COL-2 ? 1 :0; 
+						sram_cen_w[(new_x+2+4)%8] = new_y < $signed(0) ? 1 : 0; 
+					end
 				end
-				
 				else begin
-					conv_index_w = conv_index_r + 1;
-					sram_addr_w = new_x + new_y*MAP_COL + new_z*MAP_COL*MAP_ROW;
+					for(integer i=0; i<NUM_SRAM; i=i+1) begin
+						sram_cen_w[i] = 1;
+					end
 				end
+				index_delay_w = index_delay_r[0] + 8;
 				
 			end
 		end
 		MED_FILTER : begin
 			
-			if (med_filter_done) begin
-				last_2index_w = 0;
-				last_1index_w = 0;
-				sram_cen_w  = 1;
-				sram_cen_r  = 1;
-				med_filter_index_w = 0;
-			end
-			else begin
-				if(out_counter_r > 0) begin
-					out_valid_r = 1;
-					//out_valid_w = 1;
-					out_data_r  = conv_partial_sum[4-out_counter_r];
-					out_counter_w = out_counter_r - 1;
-					//$display("%d %d", counter_w, counter_r);
-				end
-				else begin
-					out_valid_r = 0;
-					out_valid_w = 0;
-				end
-				last_2index_w = last_1index_r;
-				last_1index_w = med_filter_index_r;
-				new_z = (med_filter_index_r)/16;
-				new_x = origin_index_x + (med_filter_index_r% 4) - 1; 
-				new_y = origin_index_y + (med_filter_index_r>>2)%4 - 1;
-				if(new_x < $signed(0) || new_y <$signed(0) || new_x >= MAP_COL || new_y >= MAP_ROW || new_z >= 4) begin
-					if(med_filter_index_r>=64) begin
-						med_filter_index_w = med_filter_index_r + 1;
-						sram_cen_w  = 1;
-						//sram_cen_r  = 1;
-					end else begin
-						i_r[med_filter_index_r%16] = 0;
-						if(med_filter_index_r/16 > counter_r) begin
-							counter_w = counter_r + 1;
-							out_counter_w = 4;
-						end
-						//$display("%d %d %d", med_filter_index_r, counter_w, counter_r);
-						med_filter_index_r = med_filter_index_r + 1;
-						med_filter_index_w = med_filter_index_r;
-					end
-				end
-				else begin
-					
-					med_filter_index_w = med_filter_index_r + 1;
-					sram_addr_w = new_x + new_y*MAP_COL + new_z*MAP_COL*MAP_ROW;
-				end
-				
-				if(med_filter_index_r/16 > counter_r) begin
-					counter_w = counter_r + 1;
-					out_counter_w = 4;
-				end
-				
-			end
-			
 		end
 		SOBER_NMS  : begin
-			if (sober_nms_done)begin
-				last_2index_w = 0;
-				last_1index_w = 0;
-				sram_cen_w  = 1;
-				sram_cen_r  = 1;
-				med_filter_index_w = 0;
-			end
-			else begin
-				if(out_counter_r > 0) begin
-					out_valid_r = 1;
-					//out_valid_w = 1;
-					out_data_r  = conv_partial_sum[4-out_counter_r];
-					out_counter_w = out_counter_r - 1;
-					//$display("%d %d", counter_w, counter_r);
-				end
-				else begin
-					out_valid_r = 0;
-					out_valid_w = 0;
-				end
-				last_2index_w = last_1index_r;
-				last_1index_w = med_filter_index_r;
-				new_z = (med_filter_index_r)/16;
-				new_x = origin_index_x + (med_filter_index_r% 4) - 1; 
-				new_y = origin_index_y + (med_filter_index_r>>2)%4 - 1;
-				if(new_x < $signed(0) || new_y <$signed(0) || new_x >= MAP_COL || new_y >= MAP_ROW || new_z >= 4) begin
-					if(med_filter_index_r>=64) begin
-						med_filter_index_w = med_filter_index_r + 1;
-						sram_cen_w  = 1;
-						sram_cen_r  = 1;
-					end else begin
-						i_r[med_filter_index_r%16] = 0;
-						if(med_filter_index_r/16 > counter_r) begin
-							counter_w = counter_r + 1;
-							out_counter_w = 4;
-						end
-						//$display("%d %d %d", med_filter_index_r, counter_w, counter_r);
-						med_filter_index_r = med_filter_index_r + 1;
-						med_filter_index_w = med_filter_index_r;
-					end
-				end
-				else begin
-					
-					med_filter_index_w = med_filter_index_r + 1;
-					sram_addr_w = new_x + new_y*MAP_COL + new_z*MAP_COL*MAP_ROW;
-				end
-				
-				if(med_filter_index_r/16 > counter_r) begin
-					counter_w = counter_r + 1;
-					out_counter_w = 4;
-				end
-			end
+			
 		end
 		IDLE       : begin
 			
@@ -535,22 +628,22 @@ always @(*) begin
 		DISPLAY    : begin
 			if (display_done) begin
 				next_state = FETCH;
+				for(integer i=0; i<NUM_SRAM; i=i+1) begin
+					if (sram_cen_r[i][2] == 0)
+						next_state = DISPLAY;
+				end
 			end
 			else begin
 				next_state = DISPLAY;
 			end
 		end
 		CONV_CALC  : begin
-			if (convolution_calc_done) begin
-				if (convolution_done) begin
-					next_state = FETCH;
-				end
-				else begin
+			if (convolution_done) begin
+				if (out_counter_r < 4)
 					next_state = CONV_CALC;
-				end
-				
-			end
-			else begin
+				else
+					next_state = FETCH;
+			end else begin
 				next_state = CONV_CALC;
 			end
 		end
@@ -576,121 +669,285 @@ always @(*) begin
 		default	   : next_state = IDLE;
 	endcase	
 end
-always @(*) begin
-	if (state == SOBER_NMS && out_counter_w >= 3) begin
-		conv_partial_sum0 = o_sobel_nms[0];
-		conv_partial_sum1 = o_sobel_nms[1];
-		conv_partial_sum2 = o_sobel_nms[2];
-		conv_partial_sum3 = o_sobel_nms[3];
-		conv_partial_sum[0] = o_sobel_nms[0];
-		conv_partial_sum[1] = o_sobel_nms[1];
-		conv_partial_sum[2] = o_sobel_nms[2];
-		conv_partial_sum[3] = o_sobel_nms[3];
-		//$display("%d", o_sobel_nms[3]);
-	end
-	if (state == MED_FILTER && out_counter_w > 2) begin
-		conv_partial_sum0 <= o_med_data[0];
-				conv_partial_sum1 <= o_med_data[1];
-				conv_partial_sum2 <= o_med_data[2];
-				conv_partial_sum3 <= o_med_data[3];
-				conv_partial_sum[0] <= o_med_data[0];
-				conv_partial_sum[1] <= o_med_data[1];
-				conv_partial_sum[2] <= o_med_data[2];
-				conv_partial_sum[3] <= o_med_data[3];
-		//$display("%d", o_sobel_nms[3]);
-	end
-end
+
 // ---------------------------------------------------------------------------
 // Sequential Block
 // ---------------------------------------------------------------------------
 // ---- Write your sequential block design here ---- //
 reg[15:0] counter;
+// State transition
 always @( posedge i_clk or negedge i_rst_n) begin
 	if(~i_rst_n) begin
 		state <= FETCH;
-		depth <= 32; // default channel dept 32
-		sram_cen_w  <= 1;
-		sram_cen_r  <= 1;
-		origin_index_x <= 0;
-		origin_index_y <= 0;
-		counter <=0;
-		test_sum <= 0;
-	end else begin
+		next_state <= FETCH;
+	end else
 		state <= next_state;
-		if ((state == LOAD_MAP && i_in_valid)) begin
-			if (sram_addr_w%64 ==32 ) begin
-				test_sum = test_sum+sram_data_r;
-				//$display("%d %d",test_sum, sram_data_r);
-				
-			end
-				
-			cnt <= cnt + 1;
-		end else if (next_state == DISPLAY || next_state == CONV_CALC|| next_state == MED_FILTER|| next_state == SOBER_NMS)
-			cnt <= cnt + 1;
-			
-		sram_data_r <= sram_data_w;
-		
-		out_data_r  <= out_data_w;
-		out_valid_r <= out_valid_w;
-		sram_cen_r  <= sram_cen_w;
-		sram_wen_r  <= sram_wen_w;
-		o_in_ready_r <= o_in_ready_w;
-		counter <= out_valid_w? counter + 1: counter;
-		if (cnt > 1 && state == CONV_CALC && counter_w < 2) begin
-			conv_partial_sum[(last_1index_r)/depth] <= conv_partial_sum[(last_1index_r)/depth] + sram_data_out;
-			conv_partial_sum0  <= conv_partial_sum[0 ];
-			conv_partial_sum1  <= conv_partial_sum[1 ];
-			conv_partial_sum2  <= conv_partial_sum[2 ];
-			conv_partial_sum3  <= conv_partial_sum[3 ];
-			conv_partial_sum4  <= conv_partial_sum[4 ];
-			conv_partial_sum5  <= conv_partial_sum[5 ];
-			conv_partial_sum6  <= conv_partial_sum[6 ];
-			conv_partial_sum7  <= conv_partial_sum[7 ];
-			conv_partial_sum8  <= conv_partial_sum[8 ];
-			conv_partial_sum9  <= conv_partial_sum[9 ];
-			conv_partial_sum10 <= conv_partial_sum[10];
-			conv_partial_sum11 <= conv_partial_sum[11];
-			conv_partial_sum12 <= conv_partial_sum[12];
-			conv_partial_sum13 <= conv_partial_sum[13];
-			conv_partial_sum14 <= conv_partial_sum[14];
-			conv_partial_sum15 <= conv_partial_sum[15];
-		end
-		if (cnt > 1 && (state == MED_FILTER || state == SOBER_NMS)) begin
-			i_r[last_1index_r%16] <= sram_data_out;
-		end
-		
-		/* if (out_counter_w > 2) begin
-			if (state == MED_FILTER) begin
-				conv_partial_sum0 <= o_med_data[0];
-				conv_partial_sum1 <= o_med_data[1];
-				conv_partial_sum2 <= o_med_data[2];
-				conv_partial_sum3 <= o_med_data[3];
-				conv_partial_sum[0] <= o_med_data[0];
-				conv_partial_sum[1] <= o_med_data[1];
-				conv_partial_sum[2] <= o_med_data[2];
-				conv_partial_sum[3] <= o_med_data[3];
-			end
-			
-		end */
-		conv_index_r <= conv_index_w; 
-		counter_r <= counter_w;
-		out_counter_r <= out_counter_w;
-		med_filter_index_r <= med_filter_index_w;
-		
-		last_2index_r <= last_2index_w;
-		last_1index_r <= last_1index_w;
-		
+end
+
+// Store current instruction
+/* always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		current_op_r <= 0;
+		current_op_w <= 0;
+	end else
 		current_op_r <= current_op_w;
+end */
+
+// Store current instruction
+always @( posedge i_clk or negedge i_rst_n) begin
+	for(integer i=0; i<NUM_SRAM; i=i+1) begin
+		if(~i_rst_n) begin
+			sram_data_r[i] <= 0;
+		end else
+			sram_data_r[i] <= sram_data_w[i];
 	end
 end
 
+// Store current instruction
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		o_in_ready_r  <= 0;
+		o_in_ready_w  <= 0;
+	end else
+		o_in_ready_r  <= o_in_ready_w ;
+end
+
+
+// Store current sram address in last 2 cycle
+generate
+	for(SRAM_inst = 0; SRAM_inst < NUM_SRAM; SRAM_inst = SRAM_inst + 1) begin:SRAM_loop1
+		always @( posedge i_clk or negedge i_rst_n) begin
+			if(~i_rst_n) begin
+				sram_addr_delay_r[SRAM_inst][0] <= 0;
+				sram_addr_delay_r[SRAM_inst][1] <= 0;
+				sram_addr_delay_r[SRAM_inst][2] <= 0;
+				sram_addr_delay_w[SRAM_inst]    <= 0;
+				tsram_addr_delay_r    <= 0;
+			end
+			else begin
+				tsram_addr_delay_r <= sram_addr_delay_w[SRAM_inst] ;
+				sram_addr_delay_r[SRAM_inst][0] <= sram_addr_delay_w[SRAM_inst];
+				sram_addr_delay_r[SRAM_inst][1] <= sram_addr_delay_r[SRAM_inst][0];
+				sram_addr_delay_r[SRAM_inst][2] <= sram_addr_delay_r[SRAM_inst][1];
+			end
+		end
+	end
+	
+endgenerate
+
+//assign sram_addr  = sram_addr_delay_r[0];
+
+
+// Store current index in last 2 cycle
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		index_delay_r[0] <= 0;
+		index_delay_r[1] <= 0;
+		index_delay_r[2] <= 0;
+		index_delay_w    <= 0;
+	end
+	else begin
+		index_delay_r[0] <= index_delay_w;
+		index_delay_r[1] <= index_delay_r[0];
+		index_delay_r[2] <= index_delay_r[1];
+	end
+end
+
+// Counter increment
+always @( posedge i_clk) begin
+	if(cnt < target_sticks)
+		cnt <= cnt + 1;
+	else
+		cnt <= cnt;
+end
+
+// Output data
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		out_data_r <= 0;
+	end
+	else
+		out_data_r <= out_data_w;
+end
+
+// Output data valid
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		out_valid_r <= 0;
+	end
+	else
+		out_valid_r <= out_valid_w;
+end
+
+// Output counter
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		out_counter_r <= 0;
+		counter_r <= 0;
+	end
+	else begin
+		out_counter_r <= out_counter_w;
+		counter_r <= counter_w;
+	end
+end
+assign activate_median_filter = out_counter_r==4&& state==MED_FILTER;
+assign activate_sobel_nms = out_counter_r==4 && state==SOBER_NMS; 
+
+
+// Delay coordinate
+always @( posedge i_clk) begin
+	new_y_delay1 <= new_y;
+	new_y_delay2 <= new_y_delay1;
+end
+
+
+// Store input data for median filter and sobel nms module
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		for(integer i=0; i<16; i=i+1) begin
+			i_r[i] <= 0;
+		end
+	end else begin
+	
+				/* new_z = index_delay_r[0] >= 16*depth_r? depth_r : (index_delay_r[0])/16;
+				new_x = origin_index_x_r - 1; 
+				new_y = origin_index_y_r + (index_delay_r[0]%16)/4 - 1; */
+		if(((sram_cen_r[1][1] == 0 && sram_wen_r[1][1] == 1) || (sram_cen_r[5][1] == 0 && sram_wen_r[5][1] == 1)) && ( state==MED_FILTER || state==SOBER_NMS)) begin //SRAM READ 
+			if(new_y_delay2%2 == 0) begin
+				if(new_x >= $signed(0)) begin
+					i_r[index_delay_r[2]%16] <=  sram_data_out[new_x];
+					i_r[index_delay_r[2]%16 + 4] <=  sram_data_out[(new_x+4)%8];
+				end 
+				if (new_x < MAP_COL - 3) begin
+					i_r[index_delay_r[2]%16 + 3] <=  sram_data_out[new_x + 3];
+					i_r[index_delay_r[2]%16 + 7] <=  sram_data_out[(new_x+3+4)%8];
+				end
+				
+				i_r[index_delay_r[2]%16 + 1] <=  sram_data_out[new_x + 1];
+				i_r[index_delay_r[2]%16 + 2] <=  sram_data_out[new_x + 2];
+				i_r[index_delay_r[2]%16 + 5] <=  sram_data_out[(new_x+1+4)%8];
+				i_r[index_delay_r[2]%16 + 6] <=  sram_data_out[(new_x+2+4)%8];
+			end
+			else begin
+				if(new_x >= $signed(0)) begin
+					i_r[index_delay_r[2]%16]     <= new_y_delay2 < $signed(0) ? i_r[index_delay_r[2]%16]  :  sram_data_out[(new_x+4)%8];
+					i_r[index_delay_r[2]%16 + 4] <= new_y_delay2 >= MAP_ROW-2 ? i_r[index_delay_r[2]%16+4]  :  sram_data_out[new_x];
+					//$display("%d %d %d %d",index_delay_r[2], new_x, new_y_delay2, sram_data_out[new_x]);
+				end 
+				if (new_x < MAP_COL - 3) begin
+					i_r[index_delay_r[2]%16 + 3] <= new_y_delay2 < $signed(0) ? i_r[index_delay_r[2]%16+3]  :  sram_data_out[(new_x+3+4)%8];
+					i_r[index_delay_r[2]%16 + 7] <= new_y_delay2 >= MAP_ROW-2 ? i_r[index_delay_r[2]%16+7]  :  sram_data_out[new_x + 3   ];
+				end
+				
+				i_r[index_delay_r[2]%16 + 1] <= new_y_delay2 < $signed(0) ? i_r[index_delay_r[2]%16 + 1]  :  sram_data_out[(new_x+1+4)%8];
+				i_r[index_delay_r[2]%16 + 2] <= new_y_delay2 < $signed(0) ? i_r[index_delay_r[2]%16 + 2]  :  sram_data_out[(new_x+2+4)%8];
+				i_r[index_delay_r[2]%16 + 5] <= new_y_delay2 >= MAP_ROW-2 ? i_r[index_delay_r[2]%16 + 5]  :  sram_data_out[new_x + 1];
+				i_r[index_delay_r[2]%16 + 6] <= new_y_delay2 >= MAP_ROW-2 ? i_r[index_delay_r[2]%16 + 6]  :  sram_data_out[new_x + 2];
+			end
+		end
+	end
+end
+
+//assign in_valid = index_delay_r[2]%16 
+
+// Accumlate sum for convolution
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		for(integer i=0; i<16; i=i+1) begin
+			conv_partial_sum[i] <= 0;
+		end
+	end else begin
+		
+		if(((sram_cen_r[1][1] == 0 && sram_wen_r[1][1] == 1) || (sram_cen_r[5][1] == 0 && sram_wen_r[5][1] == 1)) && state == CONV_CALC) begin //SRAM READ 
+			if(new_y_delay2%2 == 0) begin
+				if(new_x >= $signed(0)) begin
+					conv_partial_sum[index_delay_r[2]%16] <= conv_partial_sum[index_delay_r[2]%16] + sram_data_out[new_x];
+					conv_partial_sum[index_delay_r[2]%16 + 4] <= conv_partial_sum[index_delay_r[2]%16 + 4] + sram_data_out[(new_x+4)%8];
+				end 
+				if (new_x < MAP_COL - 3) begin
+					conv_partial_sum[index_delay_r[2]%16 + 3] <= conv_partial_sum[index_delay_r[2]%16 + 3] + sram_data_out[new_x + 3];
+					conv_partial_sum[index_delay_r[2]%16 + 7] <= conv_partial_sum[index_delay_r[2]%16 + 7] + sram_data_out[(new_x+3+4)%8];
+				end
+				
+				conv_partial_sum[index_delay_r[2]%16 + 1] <= conv_partial_sum[index_delay_r[2]%16 + 1] + sram_data_out[new_x + 1];
+				conv_partial_sum[index_delay_r[2]%16 + 2] <= conv_partial_sum[index_delay_r[2]%16 + 2] + sram_data_out[new_x + 2];
+				conv_partial_sum[index_delay_r[2]%16 + 5] <= conv_partial_sum[index_delay_r[2]%16 + 5] + sram_data_out[(new_x+1+4)%8];
+				conv_partial_sum[index_delay_r[2]%16 + 6] <= conv_partial_sum[index_delay_r[2]%16 + 6] + sram_data_out[(new_x+2+4)%8];
+			end
+			else begin
+				if(new_x >= $signed(0)) begin
+					conv_partial_sum[index_delay_r[2]%16]     <= new_y_delay2 < $signed(0) ? conv_partial_sum[index_delay_r[2]%16]  : conv_partial_sum[index_delay_r[2]%16]    + sram_data_out[(new_x+4)%8];
+					conv_partial_sum[index_delay_r[2]%16 + 4] <= new_y_delay2 >= MAP_ROW-2 ? conv_partial_sum[index_delay_r[2]%16+4 ]  :conv_partial_sum[index_delay_r[2]%16 + 4] + sram_data_out[new_x];
+				end 
+				if (new_x < MAP_COL - 3) begin
+					conv_partial_sum[index_delay_r[2]%16 + 3] <= new_y_delay2 < $signed(0) ? conv_partial_sum[index_delay_r[2]%16+3]  : conv_partial_sum[index_delay_r[2]%16 + 3] + sram_data_out[(new_x+3+4)%8];
+					conv_partial_sum[index_delay_r[2]%16 + 7] <= new_y_delay2 >= MAP_ROW-2 ? conv_partial_sum[index_delay_r[2]%16+7]  : conv_partial_sum[index_delay_r[2]%16 + 7] + sram_data_out[new_x + 3   ];
+				end
+				
+				conv_partial_sum[index_delay_r[2]%16 + 1] <= new_y_delay2 < $signed(0) ? conv_partial_sum[index_delay_r[2]%16 + 1]  : conv_partial_sum[index_delay_r[2]%16 + 1] + sram_data_out[(new_x+1+4)%8];
+				conv_partial_sum[index_delay_r[2]%16 + 2] <= new_y_delay2 < $signed(0) ? conv_partial_sum[index_delay_r[2]%16 + 2]  : conv_partial_sum[index_delay_r[2]%16 + 2] + sram_data_out[(new_x+2+4)%8];
+				conv_partial_sum[index_delay_r[2]%16 + 5] <= new_y_delay2 >= MAP_ROW-2 ? conv_partial_sum[index_delay_r[2]%16 + 5]  : conv_partial_sum[index_delay_r[2]%16 + 5] + sram_data_out[new_x + 1];
+				conv_partial_sum[index_delay_r[2]%16 + 6] <= new_y_delay2 >= MAP_ROW-2 ? conv_partial_sum[index_delay_r[2]%16 + 6]  : conv_partial_sum[index_delay_r[2]%16 + 6] + sram_data_out[new_x + 2];
+			end
+		end
+	end
+end
+
+
+
+
+// Sram chip enable and write enable pins
+always @( posedge i_clk or negedge i_rst_n) begin
+	for(integer i=0; i<NUM_SRAM; i=i+1) begin
+		if(~i_rst_n) begin
+			sram_cen_r[i]  <= 3'b111;
+			sram_cen_w[i]  <= 1;
+			
+			sram_wen_r[i]  <= 3'b000;
+			sram_wen_w[i]  <= 0;
+		end else begin
+			sram_wen_r[i][0] <= sram_wen_w[i];
+			sram_wen_r[i][1] <= sram_wen_r[i][0];
+			sram_wen_r[i][2] <= sram_wen_r[i][1];
+					   
+			sram_cen_r[i][0] <= sram_cen_w[i];
+			sram_cen_r[i][1] <= sram_cen_r[i][0];
+			sram_cen_r[i][2] <= sram_cen_r[i][1];
+		end
+	end
+end
+
+
+// Origin transition
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		origin_index_x_r <= 0;
+		origin_index_y_r <= 0;
+		origin_index_x_w <= 0;
+		origin_index_y_w <= 0;
+	end else begin
+		origin_index_x_r <= origin_index_x_w;
+		origin_index_y_r <= origin_index_y_w;
+	end
+end
+
+// Depth transition
+always @( posedge i_clk or negedge i_rst_n) begin
+	if(~i_rst_n) begin
+		depth_r <= 32;
+		depth_w <= 32;
+	end else begin
+		depth_r <= depth_w;
+	end
+end
 endmodule
 
 
 
 
-module median_filter(
+module median_filter_submodule(
     input [7:0] p1, p2, p3, p4, p5, p6, p7, p8, p9,
+	input i_in_valid,
     output [7:0] median
 );
     wire [7:0] sorted[8:0];
@@ -701,16 +958,17 @@ module median_filter(
     reg [7:0] pixels[8:0];
 
     always @(*) begin
-        pixels[0] = p1;
-        pixels[1] = p2;
-        pixels[2] = p3;
-        pixels[3] = p4;
-        pixels[4] = p5;
-        pixels[5] = p6;
-        pixels[6] = p7;
-        pixels[7] = p8;
-        pixels[8] = p9;
-
+		if (i_in_valid) begin
+			pixels[0] = p1;
+			pixels[1] = p2;
+			pixels[2] = p3;
+			pixels[3] = p4;
+			pixels[4] = p5;
+			pixels[5] = p6;
+			pixels[6] = p7;
+			pixels[7] = p8;
+			pixels[8] = p9;
+		end
         // Sort the array using bubble sort
         for (i = 0; i < 8; i = i + 1) begin
             for (j = 0; j < 8 - i; j = j + 1) begin
@@ -727,9 +985,28 @@ module median_filter(
 
 endmodule
 
+module median_filter(
+	input signed[7:0] p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16,
+	input i_in_valid,
+	output [7:0] median [3:0]
+);
+	wire [7:0] sub_median[3:0];
+	
+	median_filter_submodule u_submodule_inst0 (p11, p10, p9 , p7 , p6 , p5 , p3, p2, p1, i_in_valid,    sub_median[0]);
+	median_filter_submodule u_submodule_inst1 (p12, p11, p10, p8 , p7 , p6 , p4, p3, p2, i_in_valid,    sub_median[1]);
+	median_filter_submodule u_submodule_inst2 (p15, p14, p13, p11, p10, p9 , p7, p6, p5, i_in_valid,    sub_median[2]);
+	median_filter_submodule u_submodule_inst3 (p16, p15, p14, p12, p11, p10, p8, p7, p6, i_in_valid,    sub_median[3]);
+	
+	assign median[3] = sub_median[3];
+	assign median[2] = sub_median[2];
+	assign median[1] = sub_median[1];
+	assign median[0] = sub_median[0];
+endmodule
+
 
 module sobel_nms(
     input signed[7:0] p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16,
+	input i_in_valid,
     output [13:0] sobel_nms[3:0]
 );
 	localparam angle0   = 0;
@@ -762,22 +1039,24 @@ module sobel_nms(
     reg [7:0] pixels[15:0];
 
     always @(*) begin
-        pixels[0] = p1;
-        pixels[1] = p2;
-        pixels[2] = p3;
-        pixels[3] = p4;
-        pixels[4] = p5;
-        pixels[5] = p6;
-        pixels[6] = p7;
-        pixels[7] = p8;
-        pixels[8] = p9;
-		pixels[9] = p10;
-        pixels[10] = p11;
-        pixels[11] = p12;
-        pixels[12] = p13;
-        pixels[13] = p14;
-        pixels[14] = p15;
-		pixels[15] = p16;
+		if (i_in_valid) begin
+			pixels[0] = p1;
+			pixels[1] = p2;
+			pixels[2] = p3;
+			pixels[3] = p4;
+			pixels[4] = p5;
+			pixels[5] = p6;
+			pixels[6] = p7;
+			pixels[7] = p8;
+			pixels[8] = p9;
+			pixels[9] = p10;
+			pixels[10] = p11;
+			pixels[11] = p12;
+			pixels[12] = p13;
+			pixels[13] = p14;
+			pixels[14] = p15;
+			pixels[15] = p16;
+		end
         // Sort the array using bubble sort
         for (i = 0; i < 4; i = i + 1) begin
 			if (i < 2) begin
@@ -891,3 +1170,4 @@ module sobel_nms(
 	assign sobel_nms[2] = Gnms[2]; 
 	assign sobel_nms[3] = Gnms[3]; 
 endmodule
+

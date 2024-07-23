@@ -1,0 +1,52 @@
+#x HLBEGIN S.1
+#x {{COLOR=>1;}}
+#x 194 { @@n 36 a 0 @@p 36 a 0 }
+#x HLEND
+#x HLBEGIN S.2
+#x {{COLOR=>1;}}
+#x 194 { @@n 68 a 0 @@p 68 a 0 }
+#x HLEND
+#x HLBEGIN S.3
+#x {{COLOR=>1;}}
+#x 194 { @@n 70 a 0 @@p 70 a 0 }
+#x HLEND
+#x HLBEGIN S.4
+#x {{COLOR=>1;}}
+#x 194 { @@n 103 a 0 @@p 103 a 0 }
+#x HLEND
+#x HLBEGIN S.5
+#x {{COLOR=>1;}}
+#x 194 { @@n 136 a 0 @@p 136 a 0 }
+#x HLEND
+#x HLBEGIN S.6
+#x {{COLOR=>1;}}
+#x 194 { @@n 169 a 0 @@p 169 a 0 }
+#x HLEND
+#x HLBEGIN S.7
+#x {{COLOR=>1;}}
+#x 194 { @@i 612 a 0 }
+#x HLEND
+#x HLBEGIN S.8
+#x {{COLOR=>1;}{COLOR=>2;}{COLOR=>3;}{COLOR=>4;}}
+#x !{-2 0 0 -4 1 0}
+#x 194 { @@p0 1 1 @@p1 3 1 @@d 0 { @@i 1546 a 1 @@i 1624 a 2 @@i 1626 a 3
+#x @@t0 0 1626 3 @@t1 0 1624 3 @@t1 1 1546 0 @@t1 2 1546 1 } }
+#x HLEND
+#x HLBEGIN S.9
+#x {{COLOR=>2;}{COLOR=>1;}}
+#x !{2 0 0 2 0 0}
+#x 194 { @@t 547 0 a 1 @@t 618 0 a 1 @@t0 0 547 0 @@t0 1 41 3 @@t1 0 618 0
+#x @@t1 1 41 3 }
+#x HLEND
+#x HLBEGIN S.10
+#x {{COLOR=>2;}{COLOR=>1;}}
+#x !{2 0 0 2 0 0}
+#x 194 { @@t 143 0 a 1 @@t 621 0 a 1 @@t0 0 143 0 @@t0 1 205 2 @@t1 0 621 0
+#x @@t1 1 205 2 }
+#x HLEND
+#x HLBEGIN S.11
+#x {{COLOR=>2;}{COLOR=>1;}}
+#x !{2 0 0 2 0 0}
+#x 194 { @@t 166 0 a 1 @@t 624 0 a 1 @@t0 0 166 0 @@t0 1 208 2 @@t1 0 624 0
+#x @@t1 1 208 2 }
+#x HLEND

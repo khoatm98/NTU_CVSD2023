@@ -1,0 +1,23 @@
+================================================================================
+Elaborated Name: 'alu'
+    (RTL Design Unit name: 'alu', ./alu.v:1)
+     Parameters (Total: 18)
+         INT_W  = 6 (default: 6)
+         FRAC_W = 10 (default: 10)
+         INST_W = 4 (default: 4)
+         DATA_W = 16 (default: (INT_W + FRAC_W))
+         B0     = 0 (default: 2'd0)
+         B1     = 1 (default: 2'd1)
+         B2     = 2 (default: 2'd2)
+         B3     = 3 (default: 2'd3)
+         FXADD  = 0 (default: 4'b0000)
+         FXSUB  = 1 (default: 4'b0001)
+         FXMUL  = 2 (default: 4'b0010)
+         FXMAC  = 3 (default: 4'b0011)
+         GELU   = 4 (default: 4'b0100)
+         CLZ    = 5 (default: 4'b0101)
+         LRCW   = 6 (default: 4'b0110)
+         LFSR   = 7 (default: 4'b0111)
+         FPADD  = 8 (default: 4'b1000)
+         FPSUB  = 9 (default: 4'b1001)
+================================================================================

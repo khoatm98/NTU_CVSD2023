@@ -1,0 +1,13 @@
+M@@reg_file@@
+N@@w_enable@@
+T@@26@@36@@
+M@@core@@
+N@@next_state[0]@@
+N@@next_state[1]@@
+N@@next_state[2]@@
+N@@next_state[3]@@
+T@@78@@89@@
+N@@i_rst_n@@
+T@@92@@99@@
+N@@i_rst_n@@
+T@@193@@207@@

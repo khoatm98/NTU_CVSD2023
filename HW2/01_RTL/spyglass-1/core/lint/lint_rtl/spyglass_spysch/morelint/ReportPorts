@@ -1,0 +1,11 @@
+SCHEMA@@PName@@Dir@@Msb@@Lsb@@Desc@@DU@@DU_BBOX
+VALUE@@i_clk@@INPUT@@0@@0@@DO NOT MODIFY!!!@@core@@No
+VALUE@@i_rst_n@@INPUT@@0@@0@@-@@core@@No
+VALUE@@o_i_addr@@OUTPUT@@31@@0@@-@@core@@No
+VALUE@@i_i_inst@@INPUT@@31@@0@@-@@core@@No
+VALUE@@o_d_we@@OUTPUT@@0@@0@@-@@core@@No
+VALUE@@o_d_addr@@OUTPUT@@31@@0@@-@@core@@No
+VALUE@@o_d_wdata@@OUTPUT@@31@@0@@-@@core@@No
+VALUE@@i_d_rdata@@INPUT@@31@@0@@-@@core@@No
+VALUE@@o_status@@OUTPUT@@1@@0@@-@@core@@No
+VALUE@@o_status_valid@@OUTPUT@@0@@0@@-@@core@@No

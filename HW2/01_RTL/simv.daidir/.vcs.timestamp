@@ -30,11 +30,11 @@
 -picarchive
 /usr/cad/synopsys/vcs/cur/linux64/bin/vcs1
 rtl.f
-48
+57
 XILINX_VIVADO=/tools/Xilinx/Vivado/2023.2
 XILINX_VITIS=/tools/Xilinx/Vitis/2023.2
 XILINX_HLS=/tools/Xilinx/Vitis_HLS/2023.2
-XDG_SESSION_ID=2428
+XDG_SESSION_ID=7588
 XDG_RUNTIME_DIR=/run/user/2012
 XDG_DATA_DIRS=/home/MingKe/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
 VMR_MODE_FLAG=64
@@ -52,15 +52,17 @@ UNAME=/bin/uname
 TOOL_HOME=/usr/cad/synopsys/vcs/cur/linux64
 SYN_MAN_DIR=/usr/cad/synopsys/synthesis/cur/doc/syn/man
 SYNTHESIS=/usr/cad/synopsys/synthesis/cur
+SYNOPSYS_synplify=/usr/cad/synopsys/synplify/cur
 SSH_TTY=/dev/pts/1
-SSH_CONNECTION=140.112.175.69 49625 140.112.20.89 30101
-SSH_CLIENT=140.112.175.69 49625 30101
+SSH_CONNECTION=140.112.175.69 61078 140.112.20.89 30101
+SSH_CLIENT=140.112.175.69 61078 30101
 SNPS_VCS_CLANG_PATH=/usr/cad/synopsys/vcs/cur/linux64/clang
 SHLIB_PATH=/usr/cad/synopsys/verdi/cur/etc/lib/libstdc++/LINUX64/
 SG_HTML_BROWSER=/usr/bin/mozilla
 SELINUX_USE_CURRENT_RANGE=
 SELINUX_ROLE_REQUESTED=
 SELINUX_LEVEL_REQUESTED=
+SC_HLPPATH=/usr/cad/synopsys/laker_oa/cur
 SCRNAME=vcs
 SCRIPT_NAME=vcs
 RISCV=/home/MingKe/lab/riscv
@@ -73,12 +75,19 @@ QTDIR=/usr/lib64/qt-3.3
 PRIMETIME=/usr/cad/synopsys/primetime/cur
 OVA_UUM=0
 OSTYPE=linux
+MGC_TMPDIR=/tmp
+MGC_LOCATION_MAP=NO_MAP
+MGC_HOME=/usr/cad/mentor/calibre/cur
+Laker_TCL_ToolBox=1
+Laker_TCL_L3=1
 LESSOPEN=||/usr/bin/lesspipe.sh %s
 LC_ALL=C
 KDEDIRS=/usr
 HOSTTYPE=x86_64-linux
 HISTCONTROL=ignoredups
 GROUP=DCSLab
+CDS_Netlisting_Mode=Analog
+CDSHOME=/usr/cad/cadence/IC/IC_06.18.210
 0
 0
 9
@@ -96,5 +105,5 @@ GROUP=DCSLab
 1630379964 /usr/cad/synopsys/vcs/cur/linux64/lib/liberrorinf.so
 1630379861 /usr/cad/synopsys/vcs/cur/linux64/lib/libsnpsmalloc.so
 1630379961 /usr/cad/synopsys/vcs/cur/linux64/lib/libvfs.so
-1719732267 simv.daidir
+1721114636 simv.daidir
 -1 partitionlib

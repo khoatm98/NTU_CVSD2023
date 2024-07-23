@@ -1,0 +1,2 @@
+0 flist.v
+    1 ./alu.v

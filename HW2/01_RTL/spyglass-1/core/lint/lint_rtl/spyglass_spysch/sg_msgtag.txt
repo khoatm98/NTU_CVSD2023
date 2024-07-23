@@ -1,0 +1,158 @@
+4 "STARC05-2.1.5.3" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+5 "W224" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+6 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+7 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+8 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+9 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+10 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+11 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+12 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+13 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+14 "W415a" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+15 "W415a" 1
+"SPG_MSGTAG_HIERARCHY"
+":core"
+23 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core:alu1@alu"
+24 "W263" 1
+"SPG_MSGTAG_HIERARCHY"
+":core:alu1@alu"
+41 "W415" 1
+"W415_VIOLATION_CSV_TAG"
+1
+42 "W415" 1
+"W415_VIOLATION_CSV_TAG"
+5
+43 "W415" 1
+"W415_VIOLATION_CSV_TAG"
+2
+43 "W415" 1
+"W415_VIOLATION_CSV_TAG"
+3
+43 "W415" 1
+"W415_VIOLATION_CSV_TAG"
+4
+-1 "DetectTopDesignUnits" 2
+"RULEGROUP"
+["Design Read"]
+"BUILTIN"
+"1"
+-1 "ElabSummary" 2
+"RULEGROUP"
+["Design Read"]
+"BUILTIN"
+"1"
+-1 "InferLatch" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[62]
+"RULEGROUP"
+["openmore/Coding_for_Synthesis"]
+-1 "NoAssignX-ML" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[39]
+"RULEGROUP"
+["morelint"]
+-1 "RegInputOutput-ML" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[63]
+"RULEGROUP"
+["morelint"]
+-1 "ReportPortInfo-ML" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[42]
+"RULEGROUP"
+["morelint"]
+-1 "STARC05-1.3.1.3" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[80]
+"RULEGROUP"
+["starc2005/s05_Construct/s05_Construct1","starc2005/Basic_Design_Constraint_05"]
+-1 "STARC05-2.1.5.3" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[44]
+"RULEGROUP"
+["starc2005/s05_Quality/s05_Quality1","starc2005/RTL_Description_Technique_05"]
+-1 "W224" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[93]
+"RULEGROUP"
+["lint/Expression"]
+-1 "W263" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[54]
+"RULEGROUP"
+["lint/width_rules_lint","lint/Lint_Elab_Rules","lint/Case"]
+-1 "W287b" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[92]
+"RULEGROUP"
+["lint/Instance"]
+-1 "W336" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[68]
+"RULEGROUP"
+["lint/Assign"]
+-1 "W415" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[86]
+"RULEGROUP"
+["lint/MultipleDriver"]
+-1 "W415a" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[91]
+"RULEGROUP"
+["lint/MultipleDriver"]
+-1 "W528" 3
+"TEMPLATE"
+["lint/lint_rtl"]
+"RULE_ORDER"
+[95]
+"RULEGROUP"
+["lint/Lint_Elab_Rules","lint/Usage"]

@@ -1,0 +1,45 @@
+================================================================================
+Elaborated Name: 'alu'
+    (RTL Design Unit name: 'alu', ./alu.v:1)
+     Parameters (Total: 8)
+         INT_W  = 9 (default: 9)
+         FRAC_W = 23 (default: 23)
+         INST_W = 6 (default: 6)
+         DATA_W = 32 (default: (INT_W + FRAC_W))
+         B0     = 0 (default: 0)
+         B1     = 1 (default: 1)
+         B2     = 2 (default: 2)
+         B3     = 3 (default: 3)
+     Instances (Total: 1): core.alu1 
+
+================================================================================
+
+Elaborated Name: 'reg_file'
+    (RTL Design Unit name: 'reg_file', ./reg_file.v:1)
+     Parameters (Total: 3)
+         ADDR_WIDTH = 5 (default: 5)
+         DATA_WIDTH = 32 (default: 32)
+         REG_AMOUNT = 32 (default: 32)
+     Instances (Total: 1): core.u_reg_file 
+
+================================================================================
+
+Elaborated Name: 'core'
+    (RTL Design Unit name: 'core', ./core.v:1)
+     Parameters (Total: 15)
+         ADDR_WIDTH     = 32 (default: 32)
+         INST_WIDTH     = 32 (default: 32)
+         DATA_WIDTH     = 32 (default: 32)
+         IDLE           = 0 (default: 0)
+         FETCH          = 1 (default: 1)
+         DECODE         = 2 (default: 2)
+         EXECUTION      = 3 (default: 3)
+         MEMORY_ACCESS  = 4 (default: 4)
+         WRITEBACK      = 5 (default: 5)
+         PC_GENERATION  = 6 (default: 6)
+         END            = 7 (default: 7)
+         R_TYPE_SUCCESS = 0 (default: 0)
+         I_TYPE_SUCCESS = 1 (default: 1)
+         MIPS_OVERFLOW  = 2 (default: 2)
+         MIPS_END       = 3 (default: 3)
+================================================================================

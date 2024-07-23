@@ -11,11 +11,29 @@
         "module",
         2
     ],
+    "sram_256x8": [
+        "sram_256x8",
+        "ezBWG",
+        "module",
+        5
+    ],
+    "median_filter_submodule": [
+        "median_filter_submodule",
+        "WkqyT",
+        "module",
+        3
+    ],
     "median_filter": [
         "median_filter",
         "wAh8P",
         "module",
-        5
+        6
+    ],
+    "sobel_nms": [
+        "sobel_nms",
+        "BEWEt",
+        "module",
+        7
     ],
     "...MASTER...": [
         "SIM",
