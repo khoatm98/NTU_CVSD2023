@@ -1,7 +1,7 @@
 rc file Version 1.0
 
 [Design]
-COMPILE_PATH=/home/MingKe/Study/HW3_SRAM_256/HW3/01_RTL
+COMPILE_PATH=/home/MingKe/Study/NTU_CVSD2023/HW3/01_RTL
 VCS_HOME=/usr/cad/synopsys/vcs/cur
 VERDI_HOME=
 SystemC=FALSE
