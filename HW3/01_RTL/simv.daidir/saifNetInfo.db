@@ -1,16 +1,1 @@
-5
-core
-sram_addr
-All
-core
-sram_cen
-Scal
-core
-sram_data
-All
-core
-sram_data_out
-All
-core
-sram_wen
-Scal
+0

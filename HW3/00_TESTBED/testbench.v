@@ -127,15 +127,14 @@ initial begin
 				j = 0;
 				// Load imput feature map
                 while (j < 2048) begin
+					@(negedge clk);
+                    if (in_ready) begin
                     in_valid = 1;
 					in_data = indata_mem[j][7:0];
-                    @(negedge clk);
-                    if (in_ready) begin
-                        j = j + 1;
+                    j = j + 1;
                     end
-					
-                    
                 end
+				@(negedge clk);
                 in_valid = 0;
 			end
 			i = i + 1;
