@@ -15,30 +15,30 @@
         "sram_256x8",
         "ezBWG",
         "module",
-        5
+        3
     ],
     "median_filter_submodule": [
         "median_filter_submodule",
         "WkqyT",
         "module",
-        3
+        4
     ],
     "median_filter": [
         "median_filter",
         "wAh8P",
         "module",
-        6
+        5
     ],
-    "sobel_nms": [
-        "sobel_nms",
-        "BEWEt",
+    "sobel_nms_0000": [
+        "sobel_nms_0000",
+        "mTw9U",
         "module",
-        7
+        8
     ],
     "...MASTER...": [
         "SIM",
         "amcQw",
         "module",
-        4
+        7
     ]
 }
